@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-mole-pop: mole-pop 0.18s ease-out both;
+
+  @keyframes mole-pop {
+    from {
+      transform: translateY(85%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
