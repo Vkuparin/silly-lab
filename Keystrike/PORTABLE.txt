@@ -1,0 +1,37 @@
+KEYSTRIKE / NÄPPÄINISKU 0.1.0 — WINDOWS X64
+
+Extract the whole ZIP into a writable folder, then launch Keystrike.exe.
+Microsoft Edge WebView2 Runtime must already be installed. It is not included.
+No installation of the game, account, admin rights or network content is needed.
+
+EVERY KEYSTRIKE DATA FILE STAYS BESIDE THE EXECUTABLE:
+  data/save.json          settings, lessons, cosmetics, scores
+  data/save.backup.json   previous good snapshot
+  data/webview/           WebView2 browser profile/cache
+  data/session.lock       prevents concurrent writers
+
+There is NO AppData fallback and no portable marker is needed.
+Move the whole game folder to transfer progress. Keep data/ when upgrading
+the executable. Do not run from a ZIP preview, Program Files or read-only media.
+If startup cannot write locally, it shows an error instead of scattering data.
+
+Finnish is the default; ENGLISH is available immediately at the top right.
+Keyboard: fresh presses of the displayed key auto-aim the cannon.
+Mouse: click the displayed logical button inside the weak-point ring.
+Mixed: WASD-area inputs plus aimed clicks. Keys do not move the cannon.
+Escape pauses. Blur/resize automatically pauses; release keys before resuming.
+Practice is unranked and has no salvage. Relaxed offers generous deadlines.
+Pro unlocks after completing that level normally or in Relaxed.
+Late Pro pairs: tap Left Shift, RELEASE it, tap the displayed key (either order).
+Never hold both; no Ctrl combinations are used. Standard/any-Shift profiles
+remain available when accessibility settings affect side/tap delivery.
+
+Results always offer Save score or Skip; names are optional. Salvage/unlocks
+are independent of saving a score. Buy cosmetic tiers in Hangar, then equip.
+Settings & data offers backup export/import and separate confirmed resets.
+
+Source, screenshots, design and release evidence:
+https://github.com/Vkuparin/silly-lab/tree/main/Keystrike
+
+This first playable build has not been certified on school laptops or through
+supervised child/Sticky Keys/Filter Keys testing. See the release notes.

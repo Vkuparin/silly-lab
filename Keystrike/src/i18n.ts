@@ -1,0 +1,242 @@
+import type { Lang } from './content.ts';
+export const words = {
+  saveName: ['Save name', 'Tallenna nimi'],
+  practicePairs: [
+    'Rehearse release-separated Shift pairs',
+    'Harjoittele vapautettuja Shift-pareja',
+  ],
+  pairWindow: ['Pair window (seconds)', 'Parin aika (sekuntia)'],
+  celebrationHint: ['Click / Space to continue', 'Napsauta / välilyönti jatkaa'],
+  pairPracticeHelp: [
+    'Tap Shift and the displayed key in either order. Release the first before the second.',
+    'Napauta Shiftiä ja näytettyä näppäintä kummassa tahansa järjestyksessä. Vapauta ensimmäinen ennen toista.',
+  ],
+  play: ['Defend Helsinki', 'Puolusta Helsinkiä'],
+  hangar: ['Hangar', 'Hangaari'],
+  scores: ['Local scores', 'Paikalliset tulokset'],
+  settings: ['Settings & data', 'Asetukset ja tiedot'],
+  home: ['Home', 'Etusivu'],
+  back: ['Back', 'Takaisin'],
+  continue: ['Continue', 'Jatka'],
+  start: ['Launch defense', 'Aloita puolustus'],
+  level: ['Level', 'Taso'],
+  keyboard: ['Keyboard', 'Näppäimistö'],
+  mouse: ['Mouse', 'Hiiri'],
+  mixed: ['Mixed', 'Yhdistelmä'],
+  standard: ['Standard', 'Normaali'],
+  relaxed: ['Relaxed', 'Rento'],
+  pro: ['Pro', 'Pro'],
+  practice: ['Practice', 'Harjoittelu'],
+  calm: ['Calm', 'Rauhallinen'],
+  spectacular: ['Spectacular', 'Näyttävä'],
+  track: ['Training track', 'Harjoittelupolku'],
+  rules: ['Game rules', 'Pelisäännöt'],
+  layout: ['Keyboard layout', 'Näppäimistöasettelu'],
+  primaryOnly: ['Primary button only / trackpad', 'Vain pääpainike / kosketuslevy'],
+  anyShift: ['Any Shift accessibility profile', 'Kumpi tahansa vaihtonäppäin'],
+  pause: ['Pause', 'Tauko'],
+  paused: ['Defense paused', 'Puolustus tauolla'],
+  resume: ['Resume defense', 'Jatka puolustusta'],
+  leave: ['Leave attempt', 'Poistu yrityksestä'],
+  leaveConfirm: [
+    'Leave this attempt? Its unsaved score will be lost. Saved salvage stays.',
+    'Poistutaanko? Tallentamaton tulos menetetään. Tallennettu romu säilyy.',
+  ],
+  score: ['Score', 'Pisteet'],
+  shield: ['City shield', 'Kaupungin suojakilpi'],
+  salvage: ['Salvage', 'Romu'],
+  streak: ['Streak', 'Osumaputki'],
+  accuracy: ['Accuracy', 'Tarkkuus'],
+  boss: ['Commander', 'Komentaja'],
+  mini: ['Scrap scout captain', 'Romulaivueen kapteeni'],
+  waveA: ['First wave', 'Ensimmäinen aalto'],
+  waveB: ['Second wave', 'Toinen aalto'],
+  drainA: ['Clear the sky', 'Tyhjennä taivas'],
+  drainB: ['Clear the sky', 'Tyhjennä taivas'],
+  entrance: ['Commander approaching', 'Komentaja lähestyy'],
+  countdown: ['Get ready', 'Valmistaudu'],
+  done: ['Defense complete', 'Puolustus päättyi'],
+  defeated: ['Commander defeated', 'Komentaja kukistettu'],
+  escaped: ['Defended — commander escaped', 'Kaupunki turvassa — komentaja pakeni'],
+  depleted: ['Shield depleted', 'Suojakilpi tyhjeni'],
+  save: ['Save score', 'Tallenna tulos'],
+  skip: ['Skip', 'Ohita'],
+  retry: ['Try again', 'Yritä uudelleen'],
+  next: ['Next level', 'Seuraava taso'],
+  nickname: ['Nickname (optional)', 'Nimimerkki (vapaaehtoinen)'],
+  remember: ['Remember my nickname', 'Muista nimimerkkini'],
+  anonymous: ['Anonymous', 'Nimetön'],
+  saved: ['Score saved', 'Tulos tallennettu'],
+  notRetained: [
+    'Outside this board’s top ten — score not retained',
+    'Tulos jäi kärkikymmenikön ulkopuolelle',
+  ],
+  skipped: ['Score skipped', 'Tulos ohitettu'],
+  noScores: ['No saved scores here yet.', 'Ei vielä tallennettuja tuloksia.'],
+  buy: ['Buy', 'Osta'],
+  equip: ['Equip', 'Ota käyttöön'],
+  equipped: ['Equipped', 'Käytössä'],
+  owned: ['Owned', 'Omistettu'],
+  locked: ['Locked', 'Lukittu'],
+  cannon: ['Cannon', 'Tykki'],
+  cannonName: ['Cannon nickname', 'Tykin nimimerkki'],
+  cosmetic: [
+    'Every upgrade is cosmetic. Your skill does the damage.',
+    'Kaikki parannukset ovat ulkoasua. Taito ratkaisee osumat.',
+  ],
+  briefing: ['Mission briefing', 'Tehtävänanto'],
+  rehearsal: ['Untimed rehearsal', 'Kiireetön harjoitus'],
+  rehearseHelp: [
+    'Try each highlighted input. Reach, tap, then return to home position.',
+    'Kokeile korostettuja näppäimiä. Kurota, napauta ja palaa kotiasentoon.',
+  ],
+  homeGuide: [
+    'Index fingers on F / J bumps. Other fingers on the home row. Thumbs near Space.',
+    'Etusormet F- ja J-kohoumille. Muut sormet kotiriville. Peukalot välilyönnin lähelle.',
+  ],
+  mixedGuide: [
+    'One hand on WASD, the other on the pointer. Keys trigger weak points; they do not move the cannon.',
+    'Yksi käsi WASD:llä, toinen hiirellä. Näppäimet laukaisevat osuman, eivät liikuta tykkiä.',
+  ],
+  mouseGuide: [
+    'Aim inside the ring, then press the pictured button. Try the button check below.',
+    'Tähtää renkaan sisään ja paina kuvan painiketta. Kokeile painikkeita alla.',
+  ],
+  primary: ['Primary click', 'Pääpainike'],
+  secondary: ['Secondary click', 'Toissijainen painike'],
+  releaseHint: [
+    'Release the first key before the next tap',
+    'Vapauta ensimmäinen näppäin ennen seuraavaa',
+  ],
+  pairHelp: [
+    'Tap Left Shift, release, then W (either order). Complete within 800 ms. Never hold both.',
+    'Napauta vasenta Shiftiä, vapauta ja napauta W:tä (kumpikin järjestys käy). Aikaa 800 ms. Älä pidä molempia pohjassa.',
+  ],
+  pair: ['Shift → release → key', 'Shift → vapauta → näppäin'],
+  proLocked: [
+    'Finish this level in Standard or Relaxed to unlock Pro.',
+    'Suorita taso Normaalina tai Rentona avataksesi Pron.',
+  ],
+  phase: ['Phase', 'Vaihe'],
+  destroyed: ['Destroyed / launched', 'Tuhottu / saapunut'],
+  impacts: ['Shield impacts', 'Kilpiosumat'],
+  bestStreak: ['Best streak', 'Paras osumaputki'],
+  response: ['Median response', 'Vasteajan mediaani'],
+  earned: ['Salvage earned', 'Ansaittu romu'],
+  pending: ['Unsaved salvage', 'Tallentamaton romu'],
+  writeFailed: [
+    'Could not save beside the executable. Data is temporary; retry saving or move the whole folder to a writable location.',
+    'Tallennus tykin kansioon epäonnistui. Tiedot ovat väliaikaisia; yritä uudelleen tai siirrä koko kansio kirjoitettavaan paikkaan.',
+  ],
+  recovered: [
+    'Recovered the last valid backup.',
+    'Viimeinen kelvollinen varmuuskopio palautettiin.',
+  ],
+  corrupt: [
+    'Save data was invalid. Originals remain on disk; a new game is ready.',
+    'Tallennus oli virheellinen. Alkuperäiset säilyvät levyllä; uusi peli on valmis.',
+  ],
+  retrySave: ['Retry saving', 'Yritä tallentaa uudelleen'],
+  discard: [
+    'Continue without unsaved rewards? They will be lost.',
+    'Jatketaanko ilman tallentamattomia palkintoja? Ne menetetään.',
+  ],
+  dataLocation: ['Data location', 'Tietojen sijainti'],
+  export: ['Export backup', 'Vie varmuuskopio'],
+  import: ['Import backup', 'Tuo varmuuskopio'],
+  importConfirm: [
+    'Replace all settings, lessons, cosmetics and scores with this backup? A last-good backup is kept.',
+    'Korvataanko asetukset, tasot, ulkoasut ja tulokset tällä varmuuskopiolla? Viimeinen hyvä tallennus säilytetään.',
+  ],
+  invalidImport: [
+    'Invalid or oversized backup; nothing changed.',
+    'Virheellinen tai liian suuri varmuuskopio; mitään ei muutettu.',
+  ],
+  reset: ['Reset', 'Nollaa'],
+  resetConfirm: [
+    'Reset this domain? This cannot be undone in the game; export a backup first.',
+    'Nollataanko nämä tiedot? Tätä ei voi perua pelissä; vie ensin varmuuskopio.',
+  ],
+  lessons: ['Lessons', 'Tasot'],
+  cosmetics: ['Cosmetics', 'Ulkoasut'],
+  intensity: ['Visual intensity', 'Tehosteiden määrä'],
+  motion: ['Reduced motion', 'Vähennetty liike'],
+  guide: ['Show input guide', 'Näytä näppäinopas'],
+  sfx: ['Sound effects', 'Äänitehosteet'],
+  music: ['Music', 'Musiikki'],
+  mute: ['Mute all audio', 'Mykistä kaikki'],
+  language: ['Language', 'Kieli'],
+  portable: [
+    'All desktop data stays in data/ beside Keystrike.exe.',
+    'Kaikki työpöytätiedot pysyvät Keystrike.exe:n viereisessä data/-kansiossa.',
+  ],
+  tagline: ['THE CITY SLEEPS. YOUR CANNON DOESN’T.', 'KAUPUNKI NUKKUU. TYKKISI EI.'],
+  intro: [
+    'The Scrap King wants Helsinki’s shiny metal. Learn the keys, find the weak point, and send his fleet packing.',
+    'Romukuningas haluaa Helsingin kiiltävän metallin. Opi näppäimet, löydä heikko kohta ja lähetä laivue kotimatkalle.',
+  ],
+  offline: ['OFFLINE • 12 MISSIONS • YOUR CANNON', 'OFFLINE • 12 TEHTÄVÄÄ • OMA TYKKI'],
+  practiceHelp: [
+    'Unranked, frozen deadlines, no salvage or unlocks. Choose your keys.',
+    'Ei sijoituksia, määräaikoja, romua tai tasojen avauksia. Valitse näppäimet.',
+  ],
+  practiceKeys: [
+    'Custom keys (space-separated; named keys: Space, Enter, ShiftLeft)',
+    'Omat näppäimet (välilyönnein; nimet: Space, Enter, ShiftLeft)',
+  ],
+  practiceEnd: ['Finish practice', 'Lopeta harjoitus'],
+  onScreen: ['On-screen keyboard', 'Näyttönäppäimistö'],
+  finger: ['Finger guide', 'Sormiopas'],
+  leftLittle: ['Left little finger', 'Vasen pikkusormi'],
+  leftRing: ['Left ring finger', 'Vasen nimetön'],
+  leftMiddle: ['Left middle finger', 'Vasen keskisormi'],
+  leftIndex: ['Left index finger', 'Vasen etusormi'],
+  rightIndex: ['Right index finger', 'Oikea etusormi'],
+  rightMiddle: ['Right middle finger', 'Oikea keskisormi'],
+  rightRing: ['Right ring finger', 'Oikea nimetön'],
+  rightLittle: ['Right little finger', 'Oikea pikkusormi'],
+  thumb: ['Either thumb', 'Kumpi tahansa peukalo'],
+  arrowFinger: ['Comfortable navigation finger', 'Sopiva sormi navigointiin'],
+  suggestion: ['Try these in Practice', 'Kokeile näitä harjoittelussa'],
+  version: [
+    'Version 0.1.0 • first playable release',
+    'Versio 0.1.0 • ensimmäinen pelattava julkaisu',
+  ],
+  deviceCheck: ['Input check', 'Syötteen tarkistus'],
+  inputSeen: ['Last input', 'Viimeisin syöte'],
+  releaseStart: [
+    'Release all keys before launch / resume.',
+    'Vapauta kaikki näppäimet ennen aloitusta / jatkamista.',
+  ],
+  rememberSaved: ['Nickname preference saved', 'Nimimerkkiasetus tallennettu'],
+  quiet: ['No pressure. One weak point at a time.', 'Ei kiirettä. Yksi heikko kohta kerrallaan.'],
+} satisfies Record<string, [string, string]>;
+export type Word = keyof typeof words;
+export const translate = (lang: Lang, key: Word) => words[key][lang === 'en' ? 0 : 1];
+export function finger(key: string): Word {
+  if (key === 'Space') return 'thumb';
+  if (key.startsWith('Arrow')) return 'arrowFinger';
+  if ('qaz1'.includes(key) || key === 'ShiftLeft') return 'leftLittle';
+  if ('wsx2'.includes(key)) return 'leftRing';
+  if ('edc3'.includes(key)) return 'leftMiddle';
+  if ('rtfgvb45'.includes(key)) return 'leftIndex';
+  if ('yuhjnm67'.includes(key)) return 'rightIndex';
+  if ('ik,8'.includes(key)) return 'rightMiddle';
+  if ('ol.9'.includes(key)) return 'rightRing';
+  return 'rightLittle';
+}
+export function keyLabel(key: string) {
+  return (
+    (
+      {
+        Space: '␣',
+        Enter: '↵',
+        ArrowLeft: '←',
+        ArrowRight: '→',
+        ArrowUp: '↑',
+        ArrowDown: '↓',
+        ShiftLeft: 'L ⇧',
+      } as Record<string, string>
+    )[key] ?? key.toUpperCase()
+  );
+}
