@@ -38,9 +38,12 @@ export const HOLES = 9;
 /**
  * Pop-interval factor per difficulty level. Level 3 (×1) is the original
  * speed — "current" per Ville's spec; 1 and 2 are slower, 4 and 5 faster.
+ *
+ * v0.4.5: level 1 re-tuned ×1.5 → ×2 — initial spawn 2400 ms, i.e. a 50 %
+ * slower spawn rate than level 3 ("a lot easier"); levels 2–5 unchanged.
  */
 export const DIFFICULTY_FACTOR: Record<Difficulty, number> = {
-  1: 1.5,
+  1: 2,
   2: 1.25,
   3: 1.0,
   4: 0.75,

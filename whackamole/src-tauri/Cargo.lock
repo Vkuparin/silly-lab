@@ -3865,7 +3865,7 @@ dependencies = [
 
 [[package]]
 name = "whackamole"
-version = "0.4.0"
+version = "0.4.5"
 dependencies = [
  "tauri",
  "tauri-build",

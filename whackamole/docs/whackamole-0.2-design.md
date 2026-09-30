@@ -345,17 +345,21 @@ Pop interval = §2.4 base interval × level factor, rounded to the nearest
 
 | Level | 1 | 2 | 3 (current) | 4 | 5 |
 | :---- | :-- | :-- | :-- | :-- | :-- |
-| Factor | ×1.50 | ×1.25 | ×1.00 | ×0.75 | ×0.60 |
-| Base (score 0) | 1800 ms | 1500 ms | 1200 ms | 900 ms | 720 ms |
-| score ≥ 5 | 1500 ms | 1250 ms | 1000 ms | 750 ms | 600 ms |
-| score ≥ 12 | 1280 ms | 1060 ms | 850 ms | 640 ms | 510 ms |
-| score ≥ 20 | 1050 ms | 880 ms | 700 ms | 530 ms | 420 ms |
+| Factor | ×2.00 | ×1.25 | ×1.00 | ×0.75 | ×0.60 |
+| Base (score 0) | 2400 ms | 1500 ms | 1200 ms | 900 ms | 720 ms |
+| score ≥ 5 | 2000 ms | 1250 ms | 1000 ms | 750 ms | 600 ms |
+| score ≥ 12 | 1700 ms | 1060 ms | 850 ms | 640 ms | 510 ms |
+| score ≥ 20 | 1400 ms | 880 ms | 700 ms | 530 ms | 420 ms |
+
+**v0.4.5 (2026-09-30):** level 1 factor ×1.50 → ×2.00 — initial spawn
+2400 ms, i.e. a 50 % slower spawn rate than level 3 ("a lot easier").
+Levels 2–5 are unchanged.
 
 API (in `src/game.ts`, pure and unit-testable):
 
 ```ts
 type Difficulty = 1 | 2 | 3 | 4 | 5;
-DIFFICULTY_FACTOR: Record<Difficulty, number>  // {1:1.5, 2:1.25, 3:1, 4:0.75, 5:0.6}
+DIFFICULTY_FACTOR: Record<Difficulty, number>  // {1:2, 2:1.25, 3:1, 4:0.75, 5:0.6}
 clampDifficulty(value: number): Difficulty      // out-of-range/NaN → nearest valid
 loadDifficulty(): Difficulty                    // default 3, invalid → 3
 saveDifficulty(d: Difficulty): void             // try/catch, best-effort

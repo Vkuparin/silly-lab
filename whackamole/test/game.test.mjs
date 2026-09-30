@@ -251,7 +251,7 @@ test("pop interval ramps with score: 1200/1000/850/700", () => {
 
 test("difficulty table: factors applied to the score ramp, rounded to 10 ms", () => {
   const table = {
-    1: [1800, 1500, 1280, 1050],
+    1: [2400, 2000, 1700, 1400],
     2: [1500, 1250, 1060, 880],
     3: [1200, 1000, 850, 700],
     4: [900, 750, 640, 530],
