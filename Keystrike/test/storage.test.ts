@@ -23,10 +23,10 @@ test('atomic economy, idempotent rewards, restart, score decision independent', 
   assert(await s.reward('a', 1, 10));
   assert.equal(s.data.balance, 10);
   assert(await s.purchase('color', 1));
-  assert.equal(s.data.balance, 5);
+  assert.equal(s.data.balance, 2);
   assert.equal(s.data.owned.color, 1);
   await assert.rejects(s.purchase('color', 1));
-  assert.equal(s.data.balance, 5);
+  assert.equal(s.data.balance, 2);
   const g = new Game({
     track: 'keyboard',
     rules: 'standard',
@@ -49,7 +49,7 @@ test('atomic economy, idempotent rewards, restart, score decision independent', 
   assert.equal(s.data.scores[0].name, 'Ääni');
   const loaded = new Store();
   await loaded.load();
-  assert.equal(loaded.data.balance, 5);
+  assert.equal(loaded.data.balance, 2);
   assert.equal(loaded.data.owned.color, 1);
   assert.equal(loaded.data.scores.length, 1);
   await assert.rejects(loaded.reward('a', 2, 50));
@@ -108,5 +108,5 @@ test('serial transactions cannot overspend a shared balance', async () => {
   await s.reward('d', 1, 10);
   const results = await Promise.allSettled([s.purchase('color', 1), s.purchase('shape', 1)]);
   assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
-  assert.equal(s.data.balance, 5);
+  assert.equal(s.data.balance, 2);
 });

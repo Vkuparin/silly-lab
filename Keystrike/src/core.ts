@@ -1,4 +1,20 @@
-import { learned, pacing, VERSION, type Track, type Rules, type Layout } from './content.ts';
+import {
+  buttons,
+  wordPools,
+  miniWordPools,
+  sentences,
+  type Campaign,
+  type MouseProfile,
+} from './campaigns.ts';
+import {
+  learned,
+  pacing,
+  VERSION,
+  type Track,
+  type Rules,
+  type Layout,
+  type Lang,
+} from './content.ts';
 export interface Config {
   track: Track;
   rules: Rules;
@@ -6,13 +22,16 @@ export interface Config {
   layout: Layout;
   primaryOnly: boolean;
   anyShift: boolean;
-  practiceKeys?: string[];
-  practiceWindow?: number;
-  practicePairs?: boolean;
+  campaign?: Campaign;
+  mouseProfile?: MouseProfile;
+  textLang?: Lang;
   seed: number;
 }
 export type Prompt =
-  { kind: 'key'; key: string } | { kind: 'mouse'; button: number } | { kind: 'pair'; key: string };
+  | { kind: 'key'; key: string }
+  | { kind: 'mouse'; button: number }
+  | { kind: 'pair'; key: string }
+  | { kind: 'text'; text: string };
 export type Phase =
   'countdown' | 'waveA' | 'drainA' | 'mini' | 'waveB' | 'drainB' | 'entrance' | 'boss' | 'done';
 export interface Target {
@@ -28,13 +47,30 @@ export interface Target {
   pip: number;
   ready: number;
   radius: number;
+  phaseIndex: number;
+  phaseCount: number;
+  gateUntil: number;
+  textBuffer: string;
+  pathSeed: number;
   partial?: { member: string; time: number };
 }
 export type Action =
+  | { kind: 'text'; text: string }
+  | { kind: 'backspace' }
   | { kind: 'key'; key: string; held?: string[] }
   | { kind: 'mouse'; button: number; x: number; y: number };
 export type Event = {
-  kind: 'hit' | 'kill' | 'impact' | 'phase' | 'miss' | 'pair' | 'milestone' | 'done';
+  kind:
+    | 'hit'
+    | 'kill'
+    | 'impact'
+    | 'phase'
+    | 'miss'
+    | 'pair'
+    | 'milestone'
+    | 'done'
+    | 'bossPhase'
+    | 'character';
   target?: Target;
   amount?: number;
   x?: number;
@@ -42,7 +78,9 @@ export type Event = {
   overcharge?: boolean;
 };
 export class Game {
-  config: Config;
+  config: Readonly<Config>;
+  textCorrect = 0;
+  textMisses = 0;
   time = 0;
   phase: Phase = 'countdown';
   phaseStart = 0;
@@ -70,7 +108,21 @@ export class Game {
   private promptIndex = 0;
   private milestones = new Set<number>();
   constructor(config: Config) {
-    this.config = config;
+    if (
+      !Number.isInteger(config.level) ||
+      config.level < 1 ||
+      config.level > 12 ||
+      !['standard', 'relaxed', 'pro'].includes(config.rules)
+    )
+      throw Error('Invalid mission');
+    if (
+      config.campaign === 'return' &&
+      config.track !== 'mouse' &&
+      config.layout === 'us' &&
+      config.textLang === 'fi'
+    )
+      throw Error('Unsupported corpus');
+    this.config = Object.freeze({ ...config });
     this.startShield = config.rules === 'relaxed' ? 7 : 5;
     this.shield = this.startShield;
     this.randomState = config.seed >>> 0 || 1;
@@ -83,19 +135,44 @@ export class Game {
     this.randomState = s >>> 0;
     return this.randomState / 4294967296;
   }
+  get campaign(): Campaign {
+    return this.config.campaign ?? 'defense';
+  }
+  get profile(): MouseProfile {
+    return this.config.primaryOnly ? 'primary' : (this.config.mouseProfile ?? 'two-buttons');
+  }
+  get textLang(): Lang {
+    return this.config.textLang ?? (this.config.layout === 'fi' ? 'fi' : 'en');
+  }
   get keys() {
-    return this.config.rules === 'practice' && this.config.practiceKeys?.length
-      ? this.config.practiceKeys
-      : learned(this.config.track, this.config.level, this.config.layout);
+    return learned(this.config.track, this.config.level, this.config.layout);
+  }
+  get textTarget() {
+    return this.targets.find((t) => t.steps[t.pip]?.kind === 'text');
+  }
+  get waveProgress() {
+    const p = pacing[this.config.level - 1];
+    return ['drainA', 'drainB'].includes(this.phase)
+      ? 1
+      : Math.min(
+          1,
+          Math.max(
+            0,
+            (this.time - this.phaseStart) /
+              ((p[0] / 2) * (this.config.rules === 'relaxed' ? 1.5 : 1)),
+          ),
+        );
   }
   get multiplier() {
-    return this.config.rules === 'relaxed' ? 1.5 : this.config.rules === 'pro' ? 0.9 : 1;
+    return this.config.rules === 'relaxed' ? 1.5 : this.config.rules === 'pro' ? 0.75 : 1;
   }
   get accuracy() {
-    return this.correct + this.misses ? this.correct / (this.correct + this.misses) : null;
+    return this.correct + this.textCorrect + this.misses
+      ? (this.correct + this.textCorrect) / (this.correct + this.textCorrect + this.misses)
+      : null;
   }
   get stars() {
-    if (!this.finished || this.shield <= 0 || this.config.rules === 'practice') return 0;
+    if (!this.finished || this.shield <= 0) return 0;
     if (this.bossKilled && this.shield === this.startShield && (this.accuracy ?? 0) >= 0.95)
       return 3;
     if (this.bossKilled && this.shield / this.startShield >= 0.6 && (this.accuracy ?? 0) >= 0.8)
@@ -106,16 +183,22 @@ export class Game {
     const c = this.config;
     return [
       VERSION,
+      this.campaign,
       c.track,
       c.rules,
       c.level,
       c.track === 'mouse' ? 'pointer' : c.layout,
-      c.track === 'keyboard' ? 'keys' : c.primaryOnly ? 'primary' : 'two-buttons',
+      c.track === 'keyboard' ? 'keys' : this.profile,
       c.rules === 'pro' && c.track !== 'mouse'
         ? c.anyShift
           ? 'any-shift'
           : 'left-shift'
         : 'basic',
+      this.campaign === 'return' && c.track !== 'mouse' ? this.textLang : 'buttons',
+      this.campaign === 'return' && c.track !== 'mouse' ? `words-${c.seed % 4}` : 'pointer',
+      this.campaign === 'return' && c.track !== 'mouse' && c.level === 12
+        ? `sentence-${c.seed % sentences[this.textLang].length}`
+        : 'fixed',
     ].join(':');
   }
   get currentPrompt() {
@@ -129,7 +212,10 @@ export class Game {
     if (c.track === 'mouse' || (c.track === 'mixed' && index % 5 >= (c.level <= 2 ? 2 : 3)))
       return {
         kind: 'mouse',
-        button: !c.primaryOnly && c.level >= (c.track === 'mixed' ? 4 : 3) && index % 2 ? 2 : 0,
+        button: buttons(c.track, c.level, this.profile, this.campaign)[
+          [0, 0, 1, 0, 2, 1, 3, 0, 1, 2, 0, 3][index % 12] %
+            buttons(c.track, c.level, this.profile, this.campaign).length
+        ],
       };
     const keys = this.keys;
     return { kind: 'key', key: keys[index % keys.length] ?? 'f' };
@@ -137,8 +223,51 @@ export class Game {
   spawn(kind: Target['kind'], count = 1) {
     const p = pacing[this.config.level - 1];
     const encounter = kind === 'mini' || kind === 'boss';
-    const steps = Array.from({ length: count }, () => this.prompt(this.promptIndex++));
+    const startIndex = this.promptIndex;
+    const patterns = [
+      [0, 0, 1, 2],
+      [2, 1, 2, 0, 1],
+      [0, 3, 1, 2, 3, 0],
+    ];
+    const steps = Array.from({ length: count }, (_, i) => {
+      const phase =
+        kind === 'boss'
+          ? Math.min(
+              this.config.level === 1 ? 1 : 2,
+              Math.floor((i * (this.config.level === 1 ? 2 : 3)) / count),
+            )
+          : 0;
+      const pattern = patterns[phase];
+      return this.prompt(
+        encounter ? startIndex + pattern[i % pattern.length] + i * (phase + 1) : startIndex + i,
+      );
+    });
+    this.promptIndex += count;
+    if (this.campaign === 'return' && encounter && this.config.track !== 'mouse') {
+      const pool = (kind === 'mini' ? miniWordPools : wordPools)[this.textLang][
+        this.config.level - 1
+      ];
+      const wordCount =
+        kind === 'mini'
+          ? 2 + Math.floor((this.config.level - 1) / 4)
+          : 4 + Math.floor((this.config.level - 1) / 2);
+      steps.splice(
+        0,
+        steps.length,
+        ...Array.from({ length: wordCount }, (_, i) => ({
+          kind: 'text' as const,
+          text: pool[(i + this.config.seed) % pool.length],
+        })),
+      );
+      if (kind === 'boss' && this.config.level === 12)
+        steps.push({
+          kind: 'text',
+          text: sentences[this.textLang][this.config.seed % sentences[this.textLang].length],
+        });
+      count = steps.length;
+    }
     if (
+      this.campaign === 'defense' &&
       kind === 'boss' &&
       this.config.rules === 'pro' &&
       this.config.track !== 'mouse' &&
@@ -148,16 +277,6 @@ export class Game {
       if (this.config.level === 12)
         steps[Math.floor((count * 2) / 3)] = { kind: 'pair', key: 'Space' };
     }
-    if (
-      encounter &&
-      this.config.rules === 'practice' &&
-      this.config.practicePairs &&
-      this.config.track !== 'mouse'
-    )
-      steps[0] = {
-        kind: 'pair',
-        key: this.keys.find((k) => ['w', 'a', 's', 'd', 'q', 'e', 'Space'].includes(k)) ?? 'w',
-      };
     // Reserve all steps in a multi-hit regular so future prompts cannot collide.
     const reserved = steps.flatMap((x) => this.reservations(x));
     if (
@@ -170,23 +289,28 @@ export class Game {
       )
     )
       return false;
-    const radius =
-      this.config.rules === 'relaxed' || this.config.rules === 'practice'
-        ? 38
-        : this.config.level < 5
-          ? 34
-          : 26;
+    const radius = this.config.rules === 'relaxed' ? 38 : this.config.level < 5 ? 34 : 26;
     const lanes = [130, 300, 470, 640, 810, 940];
     const used = this.targets.map((t) => t.originX);
     const available = lanes.filter((x) => !used.includes(x));
     const lane = available[Math.floor(this.random() * available.length)];
     if (lane === undefined) return false;
     const duration = encounter
-      ? (8 + (this.config.rules === 'pro' ? 3.5 : 4) * count) *
-        (this.config.rules === 'relaxed' ? 1.5 : 1)
+      ? (steps.some((p) => p.kind === 'text')
+          ? 8 +
+            steps.reduce((n, p) => n + (p.kind === 'text' ? Array.from(p.text).length : 1), 0) *
+              (this.config.rules === 'pro' ? 0.7 : 1.4)
+          : this.config.rules === 'pro'
+            ? 6 + 2.5 * count
+            : 8 + 4 * count) * (this.config.rules === 'relaxed' ? 1.5 : 1)
       : p[2] * this.multiplier;
     const target: Target = {
       id: ++this.id,
+      phaseIndex: 0,
+      phaseCount: kind === 'boss' ? (this.config.level === 1 ? 2 : 3) : 1,
+      gateUntil: 0,
+      textBuffer: '',
+      pathSeed: this.random(),
       kind,
       x: encounter ? 540 : lane,
       originX: encounter ? 540 : lane,
@@ -218,21 +342,33 @@ export class Game {
     const c = this.config,
       p = pacing[c.level - 1];
     for (const t of this.targets) {
-      if (
-        t.partial &&
-        this.time - t.partial.time >
-          (c.rules === 'practice' ? (c.practiceWindow ?? 1.5) : 0.8) + 1e-9
-      ) {
+      if (t.partial && this.time - t.partial.time > 0.8 + 1e-9) {
         delete t.partial;
         this.fail(t);
       }
-      const fraction = Math.min(1, (this.time - t.born) / t.duration);
-      t.y = c.rules === 'practice' ? 140 : 100 + fraction * 390;
-      if (t.kind === 'drifter' || ((t.kind === 'mini' || t.kind === 'boss') && c.level >= 4))
-        t.x = t.originX + Math.sin((this.time - t.born) * 1.3) * 25;
+      if (this.time < t.gateUntil) {
+        t.deadline += dt;
+        t.born += dt;
+        continue;
+      }
+      const fraction = Math.min(1, Math.max(0, (this.time - t.born) / t.duration));
+      t.y = 100 + fraction * (t.steps.some((p) => p.kind === 'text') ? 330 : 390);
+      if (t.kind === 'boss') {
+        const phase = t.phaseIndex;
+        const amplitude = c.rules === 'relaxed' ? 35 : 65 + phase * 55 + c.level * 3;
+        const destination =
+          540 + Math.sin((this.time - t.born) * (0.6 + phase * 0.25) + t.pathSeed * 6) * amplitude;
+        t.x += Math.max(-dt * 140, Math.min(dt * 140, destination - t.x));
+      } else if (c.rules !== 'relaxed') {
+        const amplitude = (c.rules === 'pro' ? 35 : 20) + c.level;
+        t.x =
+          t.originX +
+          Math.sin((this.time - t.born) * (1 + t.pathSeed) + t.pathSeed * 6) * amplitude +
+          Math.sin((this.time - t.born) * 0.43) * amplitude * 0.3;
+      }
     }
-    if (c.rules !== 'practice')
-      for (const t of [...this.targets]) if (this.time >= t.deadline) this.impact(t);
+    for (const t of [...this.targets])
+      if (this.time >= t.deadline && this.time >= t.gateUntil) this.impact(t);
     if (this.finished) return;
     if (this.phase === 'countdown' && this.time - this.phaseStart >= 3) this.transition('waveA');
     if (this.phase === 'waveA' || this.phase === 'waveB') {
@@ -246,7 +382,7 @@ export class Game {
             c.level >= 7 && this.id % 3 === 0 ? 'armor' : c.level >= 4 ? 'drifter' : 'scout',
             c.level >= 7 && this.id % 3 === 0 ? 2 : 1,
           );
-        this.nextSpawn = this.time + p[1] * this.multiplier;
+        this.nextSpawn = this.time + p[1] * (c.rules === 'pro' ? 0.8 : this.multiplier);
       }
     }
     if (this.phase === 'drainA' && !this.targets.length) this.transition('mini');
@@ -261,7 +397,7 @@ export class Game {
     this.events.push({ kind: 'miss' });
     if (t) {
       const p = t.steps[t.pip];
-      const k = p.kind === 'mouse' ? 'mouse' : p.key;
+      const k = p.kind === 'mouse' ? 'mouse' : p.kind === 'text' ? 'text' : p.key;
       const o = (this.observations[k] ??= { hits: 0, misses: 0 });
       o.misses++;
     }
@@ -269,8 +405,41 @@ export class Game {
   action(a: Action) {
     if (this.finished || ['countdown', 'entrance'].includes(this.phase)) return false;
     this.pairHint = false;
+    const textTarget = this.textTarget;
+    if (textTarget) {
+      if (this.time < textTarget.ready || this.time < textTarget.gateUntil) return false;
+      if (a.kind === 'backspace') {
+        textTarget.textBuffer = Array.from(textTarget.textBuffer).slice(0, -1).join('');
+        return false;
+      }
+      if (a.kind !== 'text') return false;
+      const prompt = textTarget.steps[textTarget.pip];
+      if (prompt.kind !== 'text') return false;
+      const input = a.text.normalize('NFC').toLocaleLowerCase(this.textLang);
+      if (Array.from(input).length !== 1) return false;
+      const next = textTarget.textBuffer + input;
+      if (!prompt.text.startsWith(next)) {
+        this.textMisses++;
+        this.fail(textTarget);
+        return false;
+      }
+      textTarget.textBuffer = next;
+      if (next !== prompt.text) {
+        this.textCorrect++;
+        this.events.push({
+          kind: 'character',
+          target: { ...textTarget },
+          x: textTarget.x,
+          y: textTarget.y,
+        });
+        return true;
+      }
+      textTarget.textBuffer = '';
+      return this.hit(textTarget);
+    }
+    if (a.kind === 'text' || a.kind === 'backspace') return false;
     const eligible = this.targets
-      .filter((t) => this.time >= t.ready)
+      .filter((t) => this.time >= t.ready && this.time >= t.gateUntil)
       .sort((a, b) => a.deadline - b.deadline || a.id - b.id);
     const t = eligible.find((t) => {
       const p = t.steps[t.pip];
@@ -306,9 +475,13 @@ export class Game {
       if (t.partial.member === a.key) return false;
       delete t.partial;
     }
+    return this.hit(t);
+  }
+  private hit(t: Target) {
+    const p = t.steps[t.pip];
     const elapsed = this.time - t.ready;
     this.responses.push(Math.max(0, elapsed));
-    const k = p.kind === 'mouse' ? 'mouse' : p.key;
+    const k = p.kind === 'mouse' ? 'mouse' : p.kind === 'text' ? 'text' : p.key;
     const o = (this.observations[k] ??= { hits: 0, misses: 0 });
     o.hits++;
     const overcharge = this.correct > 0 && this.correct % 8 === 0;
@@ -319,6 +492,16 @@ export class Game {
     this.events.push({ kind: 'hit', x: t.x, y: t.y, target: { ...t }, overcharge });
     t.pip++;
     t.ready = this.time + 0.15;
+    const phaseIndex = Math.min(
+      t.phaseCount - 1,
+      Math.floor((t.pip * t.phaseCount) / t.steps.length),
+    );
+    if (t.pip < t.steps.length && phaseIndex !== t.phaseIndex) {
+      t.phaseIndex = phaseIndex;
+      t.gateUntil = this.time + 0.65;
+      t.ready = t.gateUntil + 0.15;
+      this.events.push({ kind: 'bossPhase', target: { ...t } });
+    }
     if ([10, 25, 50].includes(this.streak) && !this.milestones.has(this.streak)) {
       this.milestones.add(this.streak);
       this.events.push({ kind: 'milestone', amount: this.streak });
@@ -332,15 +515,13 @@ export class Game {
       this.targets = this.targets.filter((x) => x.id !== t.id);
       this.destroyed++;
       const amount =
-        this.config.rules === 'practice'
-          ? 0
-          : t.kind === 'boss'
-            ? this.config.level <= 6
-              ? 25
-              : 50
-            : t.kind === 'mini'
-              ? 10
-              : t.steps.length;
+        t.kind === 'boss'
+          ? this.config.level <= 6
+            ? 25
+            : 50
+          : t.kind === 'mini'
+            ? 10
+            : t.steps.length;
       this.salvage += amount;
       if (t.kind === 'boss') this.bossKilled = true;
       this.events.push({ kind: 'kill', target: { ...t }, amount, x: t.x, y: t.y });
@@ -359,7 +540,7 @@ export class Game {
     if (this.finished) return;
     this.finished = true;
     this.phase = 'done';
-    if (this.shield > 0 && this.config.rules !== 'practice') this.score += 100 * this.shield;
+    if (this.shield > 0) this.score += 100 * this.shield;
     this.events.push({ kind: 'done' });
   }
   clearPartial() {

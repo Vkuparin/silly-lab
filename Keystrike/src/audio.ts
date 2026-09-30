@@ -1,3 +1,5 @@
+import type { Game } from './core.ts';
+import { levelMelodies, bossMelodies, sceneIndex } from './campaigns.ts';
 import type { Settings } from './storage.ts';
 export class Audio {
   context: AudioContext | null = null;
@@ -5,6 +7,9 @@ export class Audio {
   nextNote = 0;
   note = 0;
   lastMiss = -10;
+  theme = '';
+  duckUntil = 0;
+  musicNodes = new Set<OscillatorNode>();
   unlock() {
     try {
       this.context ??= new AudioContext();
@@ -23,12 +28,14 @@ export class Audio {
     volume: number,
     type: OscillatorType = 'square',
     end?: number,
+    music = false,
   ) {
     const c = this.context;
     if (!c || c.state !== 'running' || this.voices >= 12 || volume <= 0) return;
     try {
       const o = c.createOscillator(),
         g = c.createGain();
+      if (music) this.musicNodes.add(o);
       o.type = type;
       o.frequency.setValueAtTime(freq, c.currentTime);
       if (end) o.frequency.exponentialRampToValueAtTime(end, c.currentTime + duration);
@@ -38,6 +45,7 @@ export class Audio {
       g.connect(c.destination);
       this.voices++;
       o.onended = () => {
+        this.musicNodes.delete(o);
         this.voices--;
         o.disconnect();
         g.disconnect();
@@ -46,10 +54,20 @@ export class Audio {
       o.stop(c.currentTime + duration);
     } catch {}
   }
-  effect(kind: string, s: Settings, pack = 0) {
+  effect(kind: string, s: Settings, pack = 0, commander?: number) {
     if (s.mute) return;
     const v = s.sfx;
-    if (kind === 'hit')
+    if (kind === 'hit' && commander) {
+      this.duckUntil = (this.context?.currentTime ?? 0) + 0.2;
+      this.tone(
+        170 + commander * 19,
+        0.12 + (commander % 4) * 0.03,
+        v * 0.6,
+        ['triangle', 'sawtooth', 'sine'][commander % 3] as OscillatorType,
+        70 + commander * 7,
+      );
+    }
+    if (kind === 'hit' || kind === 'character')
       this.tone(
         [740, 980, 420, 180][pack],
         0.13,
@@ -70,23 +88,45 @@ export class Audio {
       [523, 659, 784].forEach((f) => this.tone(f, 0.5, v * 0.35, 'triangle'));
     }
   }
-  update(s: Settings, boss: boolean) {
+  update(s: Settings, game: Game, boss: boolean) {
     const c = this.context;
     if (!c || c.state !== 'running' || s.mute || s.music === 0) return;
+    const index = sceneIndex(game.campaign, game.config.level),
+      theme = `${index}:${boss}`;
+    if (theme !== this.theme) {
+      for (const node of this.musicNodes) {
+        try {
+          node.stop(c.currentTime + 0.03);
+        } catch {}
+      }
+      this.theme = theme;
+      this.note = 0;
+      this.nextNote = c.currentTime + 0.04;
+    }
     if (c.currentTime < this.nextNote) return;
-    this.nextNote = c.currentTime + 0.25;
-    const melody = boss
-      ? [
-          220, 330, 261.63, 392, 220, 440, 311.13, 392, 220, 330, 293.66, 440, 261.63, 392, 330,
-          493.88,
-        ]
-      : [
-          261.63, 329.63, 392, 523.25, 392, 329.63, 293.66, 392, 246.94, 293.66, 392, 493.88, 392,
-          293.66, 261.63, 329.63,
-        ];
-    this.tone(melody[this.note % 16], 0.19, s.music * 0.3, 'triangle');
+    const beat = (boss ? 0.2 : 0.27) - (index % 12) * 0.002;
+    this.nextNote = c.currentTime + beat;
+    const melody = (boss ? bossMelodies : levelMelodies)[index],
+      root = boss ? 196 : 261.63;
+    const hz = (n: number) => root * Math.pow(2, n / 12);
+    const duck = c.currentTime < this.duckUntil ? 0.4 : 1;
+    this.tone(
+      hz(melody[this.note % 16]),
+      beat * 0.8,
+      s.music * 0.3 * duck,
+      index % 3 === 0 ? 'triangle' : index % 3 === 1 ? 'sine' : 'square',
+      undefined,
+      true,
+    );
     if (this.note % 2 === 0)
-      this.tone(melody[Math.floor(this.note / 16) % 16] / 2, 0.23, s.music * 0.18, 'sine');
-    this.note = (this.note + 1) % 128;
+      this.tone(
+        hz(melody[Math.floor(this.note / 4) % 16] - 12),
+        beat * 0.9,
+        s.music * 0.15 * duck,
+        'sine',
+        undefined,
+        true,
+      );
+    this.note = (this.note + 1) % 64;
   }
 }

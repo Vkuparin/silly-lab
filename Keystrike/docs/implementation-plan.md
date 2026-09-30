@@ -2,6 +2,8 @@
 
 Plan version: 0.1 · Based on game design 0.2 · Date: 2026-09-30
 
+**Current iteration (2026-10-01):** Preserve this as the historical playtest milestone framework. The user authorized the [v1.0.0 roadmap](next-iteration-implementation-plan.md) against the [design amendment](next-iteration-design.md), including existing-campaign improvements and the return campaign together as the first full release. See [verification](verification.md) for observed checks and remaining human/device validation.
+
 Status: implementation authorized by the user's 2026-09-30 request, including Git push and binary release. This is the original milestone framework; [technical decisions](technical-decisions.md) and [verification](verification.md) record execution and remaining human validation. The user overrides app-data defaults with always executable-local saves and caches. [game-design.md](game-design.md) governs gameplay; [review.md](review.md) explains decisions. Timing, prices, and performance targets remain provisional.
 
 ## 1. Intended release and implementation approach

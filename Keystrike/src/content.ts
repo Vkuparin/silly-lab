@@ -1,8 +1,8 @@
 export type Track = 'keyboard' | 'mouse' | 'mixed';
-export type Rules = 'standard' | 'relaxed' | 'pro' | 'practice';
+export type Rules = 'standard' | 'relaxed' | 'pro';
 export type Layout = 'fi' | 'us';
 export type Lang = 'fi' | 'en';
-export const VERSION = '1.1.1'; // gameplay.scoring.content; change when comparable rules change
+export const VERSION = '2.2.2'; // gameplay.scoring.content; change when comparable rules change
 export const roster = [
   ['The Wobbler', 'Vaappuja'],
   ['Rusty Rex', 'Ruoste-Rex'],
@@ -94,7 +94,7 @@ export const catalog = [
       ['Violet', 'Violetti'],
       ['Rainbow', 'Sateenkaari'],
     ],
-    prices: [0, 5, 15, 35],
+    prices: [0, 8, 23, 53],
   },
   {
     id: 'shape',
@@ -106,7 +106,7 @@ export const catalog = [
       ['Twin', 'Kaksi'],
       ['Pulse', 'Pulssi'],
     ],
-    prices: [0, 10, 25, 50],
+    prices: [0, 15, 38, 75],
   },
   {
     id: 'impact',
@@ -118,7 +118,7 @@ export const catalog = [
       ['Starburst', 'Tähtipurkaus'],
       ['Spectacle', 'Ilotulitus'],
     ],
-    prices: [0, 10, 30, 60],
+    prices: [0, 15, 45, 90],
   },
   {
     id: 'sound',
@@ -130,7 +130,7 @@ export const catalog = [
       ['Hum', 'Humina'],
       ['Deep boom', 'Jyrähdys'],
     ],
-    prices: [0, 10, 25, 45],
+    prices: [0, 15, 38, 68],
   },
   {
     id: 'skin',
@@ -141,7 +141,7 @@ export const catalog = [
       ['Railgun', 'Raidetykki'],
       ['Heavy cannon', 'Raskas tykki'],
     ],
-    prices: [0, 25, 60],
+    prices: [0, 38, 90],
   },
 ] as const;
 export type Category = (typeof catalog)[number]['id'];

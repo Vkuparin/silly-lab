@@ -1,6 +1,6 @@
 {
   "name": "keystrike",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,9 @@
     "format:check": "prettier --check src test scripts/*.mjs *.json vite.config.ts index.html src-tauri/tauri.conf.json src-tauri/capabilities/default.json",
     "tauri": "tauri",
     "desktop": "tauri dev",
-    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1"
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1",
+    "smoke:iteration": "node scripts/iteration-smoke.mjs",
+    "native:iteration": "node scripts/native-iteration-smoke.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "2.12.0"

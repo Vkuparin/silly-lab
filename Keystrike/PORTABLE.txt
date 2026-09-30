@@ -1,4 +1,4 @@
-KEYSTRIKE / NÄPPÄINISKU 0.1.0 — WINDOWS X64
+KEYSTRIKE / NÄPPÄINISKU 1.0.0 — WINDOWS X64
 
 Extract the whole ZIP into a writable folder, then launch Keystrike.exe.
 Microsoft Edge WebView2 Runtime must already be installed. It is not included.
@@ -19,8 +19,13 @@ Finnish is the default; ENGLISH is available immediately at the top right.
 Keyboard: fresh presses of the displayed key auto-aim the cannon.
 Mouse: click the displayed logical button inside the weak-point ring.
 Mixed: WASD-area inputs plus aimed clicks. Keys do not move the cannon.
+Defeat the level-12 Scrap King to unlock a second twelve-mission campaign.
+Its Keyboard/Mixed bosses use complete words and a final preset sentence.
+Mouse follows the same story with pointer-only encounters.
 Escape pauses. Blur/resize automatically pauses; release keys before resuming.
-Practice is unranked and has no salvage. Relaxed offers generous deadlines.
+Standard, Relaxed and Pro are available. Briefings include untimed rehearsal.
+Extended mouse profile adds middle click at level 7 and Mouse 4 at level 9.
+Choose two buttons or primary-only if your hardware does not deliver them.
 Pro unlocks after completing that level normally or in Relaxed.
 Late Pro pairs: tap Left Shift, RELEASE it, tap the displayed key (either order).
 Never hold both; no Ctrl combinations are used. Standard/any-Shift profiles
@@ -33,5 +38,5 @@ Settings & data offers backup export/import and separate confirmed resets.
 Source, screenshots, design and release evidence:
 https://github.com/Vkuparin/silly-lab/tree/main/Keystrike
 
-This first playable build has not been certified on school laptops or through
+This release has not been certified on school laptops or through
 supervised child/Sticky Keys/Filter Keys testing. See the release notes.

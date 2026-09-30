@@ -1,3 +1,4 @@
+import type { Campaign, MouseProfile } from './campaigns.ts';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import {
   catalog,
@@ -15,7 +16,10 @@ export interface Settings {
   layout: Layout;
   primaryOnly: boolean;
   anyShift: boolean;
-  intensity: 'calm' | 'standard' | 'spectacular';
+  campaign: Campaign;
+  mouseProfile: MouseProfile;
+  textLang: Lang;
+  resolution: string;
   motion: boolean;
   guide: boolean;
   sfx: number;
@@ -36,7 +40,10 @@ export interface Score {
   accuracy: number | null;
 }
 export interface Snapshot {
-  schema: 1;
+  schema: 2;
+  earned: string[];
+  appearance: string;
+  outroSeen: string[];
   revision: number;
   settings: Settings;
   balance: number;
@@ -45,14 +52,17 @@ export interface Snapshot {
   cannonName: string;
   progress: Record<
     string,
-    { unlocked: number; stars: Record<string, number>; completed: number[] }
+    { unlocked: number; stars: Record<string, number>; completed: number[]; commanders: number[] }
   >;
   scores: Score[];
   active: { id: string; receipts: number[] } | null;
 }
 export function fresh(): Snapshot {
   return {
-    schema: 1,
+    schema: 2,
+    earned: [],
+    appearance: '',
+    outroSeen: [],
     revision: 0,
     settings: {
       lang: 'fi',
@@ -61,7 +71,10 @@ export function fresh(): Snapshot {
       layout: 'fi',
       primaryOnly: false,
       anyShift: false,
-      intensity: 'standard',
+      campaign: 'defense',
+      mouseProfile: 'two-buttons',
+      textLang: 'fi',
+      resolution: '1200x860',
       motion: false,
       guide: true,
       sfx: 0.6,
@@ -90,11 +103,11 @@ export function cleanName(value: string) {
 }
 const int = (n: unknown, max: number) =>
   typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= max;
-export function validate(value: unknown): Snapshot {
+function validateSnapshot(value: unknown, legacy = false): Snapshot {
   const v = value as Snapshot;
   if (
     !v ||
-    v.schema !== 1 ||
+    Number(v.schema) !== (legacy ? 1 : 2) ||
     !int(v.revision, Number.MAX_SAFE_INTEGER) ||
     !int(v.balance, 1e9) ||
     !v.settings ||
@@ -107,9 +120,26 @@ export function validate(value: unknown): Snapshot {
   if (
     !['fi', 'en'].includes(s.lang) ||
     !['keyboard', 'mouse', 'mixed'].includes(s.track) ||
-    !['standard', 'relaxed', 'pro', 'practice'].includes(s.rules) ||
+    !(
+      legacy ? ['standard', 'relaxed', 'pro', 'practice'] : ['standard', 'relaxed', 'pro']
+    ).includes(s.rules) ||
     !['fi', 'us'].includes(s.layout) ||
-    !['calm', 'standard', 'spectacular'].includes(s.intensity)
+    (legacy
+      ? !['calm', 'standard', 'spectacular'].includes(
+          (s as unknown as { intensity: string }).intensity,
+        )
+      : !['defense', 'return'].includes(s.campaign) ||
+        !['primary', 'two-buttons', 'extended'].includes(s.mouseProfile) ||
+        !['fi', 'en'].includes(s.textLang) ||
+        ![
+          '1200x860',
+          '1280x800',
+          '1920x1080',
+          '2560x1440',
+          '3440x1440',
+          '5120x1440',
+          'fullscreen',
+        ].includes(s.resolution))
   )
     throw Error('Invalid settings');
   for (const k of ['primaryOnly', 'anyShift', 'motion', 'guide', 'mute', 'remember'] as const)
@@ -130,12 +160,23 @@ export function validate(value: unknown): Snapshot {
   if (Object.keys(v.progress).length > 100) throw Error('Oversized progress');
   for (const [key, p] of Object.entries(v.progress)) {
     if (
-      !/^(keyboard|mouse|mixed):(fi|us):(primary|two-buttons)$/.test(key) ||
+      !(
+        legacy
+          ? /^(keyboard|mouse|mixed):(fi|us):(primary|two-buttons)$/
+          : /^(defense|return):(keyboard|mouse|mixed):(fi|us):(primary|two-buttons|extended)$/
+      ).test(key) ||
       !p ||
       !int(p.unlocked, 12) ||
       p.unlocked < 1 ||
       !Array.isArray(p.completed) ||
       p.completed.some((l) => !int(l, 12) || l < 1) ||
+      (!legacy &&
+        (!Array.isArray(p.commanders) ||
+          p.commanders.length > 12 ||
+          new Set(p.commanders).size !== p.commanders.length ||
+          p.commanders.some((l) => !int(l, 12) || l < 1))) ||
+      p.completed.length > 12 ||
+      new Set(p.completed).size !== p.completed.length ||
       !p.stars ||
       Object.keys(p.stars).length > 100 ||
       Object.entries(p.stars).some(
@@ -144,6 +185,24 @@ export function validate(value: unknown): Snapshot {
     )
       throw Error('Invalid progress');
   }
+  if (
+    !legacy &&
+    (!Array.isArray(v.earned) ||
+      v.earned.length > 12 ||
+      new Set(v.earned).size !== v.earned.length ||
+      v.earned.some((id) => !/^return-(?:[1-9]|1[0-2])$/.test(id)) ||
+      typeof v.appearance !== 'string' ||
+      (v.appearance !== '' && !v.earned.includes(v.appearance)) ||
+      !Array.isArray(v.outroSeen) ||
+      v.outroSeen.length > 100 ||
+      v.outroSeen.some(
+        (id) =>
+          !/^(defense|return):(keyboard|mouse|mixed):(fi|us):(primary|two-buttons|extended)$/.test(
+            id,
+          ),
+      ))
+  )
+    throw Error('Invalid campaign rewards');
   if (!Array.isArray(v.scores) || v.scores.length > 10000) throw Error('Invalid boards');
   const ids = new Set<string>();
   const counts = new Map<string, number>();
@@ -186,8 +245,66 @@ export function validate(value: unknown): Snapshot {
     throw Error('Invalid ledger');
   return v;
 }
-export function progressKey(s: Settings) {
-  return `${s.track}:${s.layout}:${s.track === 'keyboard' ? 'two-buttons' : s.primaryOnly ? 'primary' : 'two-buttons'}`;
+export function validate(value: unknown): Snapshot {
+  if ((value as { schema?: number })?.schema !== 1) return validateSnapshot(value);
+  // Validate the old contract before migrating; never make damaged saves valid
+  // by filling arbitrary missing fields from defaults.
+  const old = validateSnapshot(value, true);
+  const d = structuredClone(old) as Snapshot;
+  const oldSettings = old.settings as unknown as { intensity: string; rules: string };
+  d.schema = 2;
+  d.earned = [];
+  d.appearance = '';
+  d.outroSeen = [];
+  d.settings = {
+    ...fresh().settings,
+    ...old.settings,
+    campaign: 'defense',
+    mouseProfile: old.settings.primaryOnly ? 'primary' : 'two-buttons',
+    textLang: old.settings.layout === 'fi' ? 'fi' : 'en',
+    motion: old.settings.motion || oldSettings.intensity === 'calm',
+    rules: oldSettings.rules === 'practice' ? 'relaxed' : old.settings.rules,
+  };
+  delete (d.settings as unknown as { intensity?: string }).intensity;
+  d.progress = {};
+  for (const [key, p] of Object.entries(old.progress)) {
+    const commanders = Object.entries(p.stars)
+      .filter(([, n]) => n >= 2)
+      .map(([k]) => Number(k.split(':')[1]));
+    d.progress[`defense:${key}`] = { ...p, commanders: [...new Set(commanders)] };
+  }
+  for (const row of old.scores) {
+    const parts = row.board.split(':');
+    if (
+      row.boss &&
+      row.defended &&
+      parts[0] === '1.1.1' &&
+      parts[3] === '12' &&
+      ['standard', 'relaxed', 'pro'].includes(parts[2])
+    ) {
+      // Mouse legacy boards omitted layout, so evidence belongs only to the
+      // selected legacy mouse route. Do not grant unrelated layout routes.
+      const layout = parts[4] === 'pointer' ? old.settings.layout : parts[4];
+      const key = `defense:${parts[1]}:${layout}:${parts[5] === 'keys' ? 'two-buttons' : parts[5]}`;
+      const p = d.progress[key];
+      if (p && !p.commanders.includes(12)) p.commanders.push(12);
+    }
+  }
+  return validateSnapshot(d);
+}
+export function deviceProfile(s: Pick<Settings, 'track' | 'primaryOnly' | 'mouseProfile'>) {
+  return s.track === 'keyboard' ? 'two-buttons' : s.primaryOnly ? 'primary' : s.mouseProfile;
+}
+export function progressKey(
+  s: Pick<Settings, 'track' | 'layout' | 'primaryOnly' | 'mouseProfile' | 'campaign'>,
+) {
+  return `${s.campaign}:${s.track}:${s.layout}:${deviceProfile(s)}`;
+}
+export function campaignUnlocked(s: Settings, d: Snapshot) {
+  return (
+    s.campaign === 'defense' ||
+    !!d.progress[progressKey({ ...s, campaign: 'defense' })]?.commanders.includes(12)
+  );
 }
 export function sortScores(a: Score, b: Score) {
   return (
@@ -227,7 +344,9 @@ export class Store {
         .sort((a, b) => b.revision - a.revision);
       if (valid.length) {
         this.data = valid[0];
-        if (raw[0] && raw[0] !== JSON.stringify(valid[0])) this.notice = 'recovered';
+        if (raw[0] && (raw[0].includes('"schema":1') || raw[0].includes('"schema": 1')))
+          this.notice = 'migrated';
+        else if (raw[0] && raw[0] !== JSON.stringify(valid[0])) this.notice = 'recovered';
       } else if (raw.some(Boolean)) this.notice = 'corrupt';
       // Interrupted combat is never resumed or replayed for currency.
       if (this.data.active)
@@ -280,10 +399,24 @@ export class Store {
   complete(id: string, g: Game) {
     return this.change((d) => {
       if (d.active?.id !== id) throw Error('Sealed attempt');
-      if (g.config.rules !== 'practice' && g.shield > 0) {
-        const key = progressKey(d.settings);
-        const p = (d.progress[key] ??= { unlocked: 1, stars: {}, completed: [] });
+      if (!g.finished) throw Error('Attempt not finished');
+      if (g.shield > 0) {
+        const key = progressKey({
+          ...d.settings,
+          ...g.config,
+          campaign: g.campaign,
+          mouseProfile: g.profile,
+        });
+        const p = (d.progress[key] ??= { unlocked: 1, stars: {}, completed: [], commanders: [] });
         p.unlocked = Math.min(12, Math.max(p.unlocked, g.config.level + 1));
+        if (g.bossKilled && !p.commanders.includes(g.config.level))
+          p.commanders.push(g.config.level);
+        if (
+          g.campaign === 'return' &&
+          g.bossKilled &&
+          !d.earned.includes(`return-${g.config.level}`)
+        )
+          d.earned.push(`return-${g.config.level}`);
         const sk = `${g.config.rules}:${g.config.level}`;
         p.stars[sk] = Math.max(p.stars[sk] ?? 0, g.stars);
         if (
@@ -306,7 +439,8 @@ export class Store {
   }
   saveScore(id: string, g: Game, name: string) {
     return this.change((d) => {
-      if (g.config.rules === 'practice' || d.scores.some((s) => s.id === id)) return;
+      if (!g.finished) throw Error('Attempt not finished');
+      if (d.scores.some((s) => s.id === id)) return;
       const row: Score = {
         id,
         board: g.board,

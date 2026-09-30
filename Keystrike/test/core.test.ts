@@ -186,38 +186,8 @@ test('pause clears partial without miss; primary-only substitutes every level', 
     assert(mouse.targets[0].steps.every((p) => p.kind === 'mouse' && p.button === 0));
   }
 });
-test('Practice keeps targets still and never awards salvage, ranks or stars', () => {
-  const g = new Game(config({ rules: 'practice', practiceKeys: ['f'] }));
-  g.transition('boss');
-  for (let i = 0; i < 6000; i++) g.step(1 / 60);
-  assert.equal(g.shield, 5);
-  assert.equal(g.targets[0].y, 140);
-  for (let i = 0; i < 4; i++) {
-    act(g, g.targets[0]);
-    g.step(0.1);
-    g.step(0.1);
-  }
-  assert.equal(g.salvage, 0);
-  assert.equal(g.stars, 0);
-});
 test('large wall gaps are rejected instead of inflicting catch-up damage', () => {
   const g = new Game(config());
   assert.throws(() => g.step(10));
   assert.equal(g.time, 0);
-});
-test('custom Practice pairs use the selected window, remain unranked and payout-free', () => {
-  const g = new Game(
-    config({ rules: 'practice', practiceKeys: ['a'], practicePairs: true, practiceWindow: 1.5 }),
-  );
-  g.transition('mini');
-  const t = g.targets[0];
-  assert.deepEqual(t.steps[0], { kind: 'pair', key: 'a' });
-  g.step(0.1);
-  g.step(0.1);
-  g.action({ kind: 'key', key: 'a', held: ['a'] });
-  for (let i = 0; i < 70; i++) g.step(1 / 60);
-  g.action({ kind: 'key', key: 'ShiftLeft', held: ['ShiftLeft'] });
-  assert.equal(g.correct, 1);
-  assert.equal(g.misses, 0);
-  assert.equal(g.salvage, 0);
 });

@@ -1,10 +1,10 @@
 # Keystrike / Näppäinisku
 
-**The city sleeps. Your cannon doesn’t.** An offline retro defense game on Helsinki’s nighttime waterfront. Learn the keys, aim at alien weak points, defeat twelve commanders, and turn their salvage into a cannon of your own.
+**The city sleeps. Your cannon doesn’t.** An offline retro defense game on Helsinki’s nighttime waterfront. Learn the keys, aim at alien weak points, defeat two fleets of twelve commanders, and turn their salvage into a cannon of your own.
 
 ![Keystrike menu and Helsinki waterfront](docs/screenshots/home.png)
 
-**v0.1.0 — first playable Windows release.** [Download the executable or portable ZIP](https://github.com/Vkuparin/silly-lab/releases/tag/keystrike-v0.1.0). The ZIP includes quick-start instructions, license notices and the same standalone game executable. Microsoft **WebView2 Runtime is required**, separately from the game.
+**v1.0.0 — first full Windows release.** [Download the executable or portable ZIP](https://github.com/Vkuparin/silly-lab/releases/tag/keystrike-v1.0.0). The ZIP includes quick-start instructions, license notices and the same standalone game executable. Microsoft **WebView2 Runtime is required**, separately from the game.
 
 ## Play
 
@@ -13,18 +13,30 @@ Extract into a writable folder and launch `Keystrike.exe`. Finnish is the first-
 | Track | What you practice |
 | --- | --- |
 | Keyboard | F/J home position and finger guidance through home row, three rows, FI/SV or US punctuation, digits and named keys. Displayed keys auto-aim. |
-| Mouse | Aim inside the ring and press the pictured logical button. Primary-only/trackpad profile available. |
+| Mouse | Aim inside the ring and press the pictured logical button. Primary-only/trackpad and two-button profiles; opt-in middle click (L7) and Mouse 4 (L9) with a button check. |
 | Mixed | WASD-area key triggers plus aimed clicks, with a separate gaming curriculum. |
 
-All twelve levels have waves, a miniboss and a named commander. Wrong inputs reset streak without damaging the city. Surviving a commander escape still unlocks the next lesson. Every outcome offers **Save score or Skip**. Optional names and top-ten boards stay local; rewards and unlocks do not depend on saving a score.
+Both twelve-level campaigns have waves, a miniboss and a named commander with distinct attack phases. Wrong inputs reset streak without damaging the city. Surviving a commander escape still unlocks the next lesson. Every outcome offers **Save score or Skip**. Optional names and top-ten boards stay local; rewards and unlocks do not depend on saving a score.
 
-Standard, generous Relaxed, per-level unlockable Pro, and unranked Practice are available. Late Keyboard/Mixed Pro uses **tap → release → tap** Shift sequences in either order, never held chords or Ctrl combinations. Use any-Shift or Standard when device/accessibility behavior differs. Escape pauses; focus loss and resizing pause automatically. Release keys before launch/resume. Menus support Tab/Enter and primary pointer input.
+Standard, generous Relaxed and per-level unlockable Pro are available, with distinct presentation. Untimed rehearsal stays in the mission briefing. Late first-campaign Keyboard/Mixed Pro uses **tap → release → tap** Shift sequences in either order, never held chords or Ctrl combinations. Use any-Shift or Standard when device/accessibility behavior differs. Escape pauses; focus loss and resizing pause automatically. Release keys before launch/resume. Menus support Tab/Enter and primary pointer input.
 
 ![Actual commander encounter](docs/screenshots/boss.png)
 
+## The king returns
+
+Defeating the first campaign's final commander unlocks **The Scrap King Returns** for that route. Surviving his escape still completes the lesson, but you must win the commander fight to unlock the sequel. A skippable ending celebrates each campaign victory.
+
+Keyboard and Mixed bosses show whole English/Finnish words beneath their ships. Every correct letter fires the cannon immediately; there is no typing popup. Minibosses use shorter words. The final king requires a sentence selected from a preset pool. Word language is independent of UI language; Finnish text needs the FI/SV layout. New letters are rehearsed before play, particularly in Mixed. Mouse stays pointer-only through the same story. Defeating sequel missions earns twelve additional cannon appearances.
+
+![Whole-word encounter in the return campaign](docs/screenshots/return-words.png)
+
+Every mission has its own scene and original level/commander music. Ships show damage, deadlines show their approach to the city's metal stores, and the HUD tracks waves and scrap. Results lead with the relevant Highscores board and let you replay another eligible difficulty. Save/Skip remains explicit; old boards and purchases survive migration.
+
+Window presets extend to 5120×1440 on supported monitors, plus fullscreen at the monitor's size. Ultrawide wings extend scenery around the same combat arena. Exit fullscreen in settings; resizing pauses safely.
+
 ## Your cannon
 
-Defeats award salvage. Fourteen purchasable tiers customize beam color, shape, impact, sound and skin. Buy sequentially, then equip. Every upgrade is cosmetic: score, timing, targeting and damage rules remain equal. Original synthesized chiptune accompanies original procedural pixel artwork. Calm and reduced motion override spectacle; sound is optional.
+Defeats award salvage. Fourteen purchasable tiers customize beam color, shape, impact, sound and skin. Buy sequentially, then equip. Every upgrade is cosmetic: score, timing, targeting and damage rules remain equal. Original synthesized chiptune accompanies original procedural pixel artwork. Spectacular effects are the default; reduced motion overrides moving effects and respects the OS preference. Sound is optional.
 
 ![Hangar and cosmetic upgrades](docs/screenshots/hangar.png)
 
@@ -54,14 +66,16 @@ cd Keystrike
 npm ci
 npm run dev        # browser preview, port 1430
 npm run desktop    # native development
-npm run check      # 231 core/content/storage tests + typecheck/build
+npm run check      # both-campaign core/content/storage tests + typecheck/build
 npm run smoke      # UI playthrough + screenshots (Edge)
+npm run smoke:iteration # endings, text, extended buttons, ultrawide
 npm run release    # Windows EXE, portable ZIP and SHA256SUMS
 npm run native:smoke # final packaged WebView2 loop/restart/move
+npm run native:iteration # native buttons, words, fullscreen, write failures
 ```
 
 Node 24+ (tested on 26), Rust stable/MSVC build tools and WebView2 are needed for development. Dependencies are locked. The release script stages locally; publish namespaced `keystrike-vX.Y.Z` tags after native smoke checks.
 
-**Future agents must read [AGENTS.md](AGENTS.md)** for the preserved planning, architecture, test, storage, versioning and publishing patterns. See [technical decisions](docs/technical-decisions.md), [verification evidence](docs/verification.md), [release notes](docs/releases/v0.1.0.md), [asset provenance](assets/manifest.md), and the original [design](docs/game-design.md), [plan](docs/implementation-plan.md), and [review history](docs/review.md).
+**Future agents must read [AGENTS.md](AGENTS.md)** for the preserved planning, architecture, test, storage, versioning and publishing patterns. See [technical decisions](docs/technical-decisions.md), [verification evidence](docs/verification.md), [release notes](docs/releases/v1.0.0.md), [asset provenance](assets/manifest.md), and the original [design](docs/game-design.md), [plan](docs/implementation-plan.md), and [review history](docs/review.md).
 
-This is a playtest release. School-laptop performance, supervised beginner learning/fun and real Sticky/Filter Keys layout compatibility have not been established. Human sessions should guide tuning; synthetic tests do not certify typing progress. Windows x64 only; unsigned executable; WebView2 is not bundled.
+v0.1.0 was the historical playtest; v1.0.0 is the first full release. School-laptop performance, supervised beginner learning/fun and real Sticky/Filter Keys layout compatibility have not been established. Human sessions should guide tuning; synthetic tests do not certify typing progress. Windows x64 only; unsigned executable; WebView2 is not bundled.

@@ -84,3 +84,27 @@ The user explicitly requested implementing the first version, retaining future-d
 The user rejected AppData artifacts while playing. This overrides the optional marker/default app-data proposal: saves, backups and WebView2 caches always stay under executable-local `data/`; read-only startup refuses with a clear error. `AGENTS.md` preserves this contract and the repeated update/release workflow.
 
 The campaign/encounters/Hangar loop is implemented and exercised automatically. Supervised child playtests, real keyboard accessibility combinations and school-laptop performance remain unclaimed follow-up validation. The first public build is marked as a playtest prerelease with these limits; synthetic input does not establish every human-focused milestone criterion.
+
+### 2026-10-01 initial player feedback — planning only
+
+The user requested a coherent design and implementation plan for [initial release player feedback](initial_release_player_feedback.md), explicitly asking not to create the next version yet. The source feedback and historical reviewer/release documents are preserved. No implementation or publishing authorization is inferred from the earlier first-release request.
+
+The [proposed design amendment](next-iteration-design.md) provides a complete traceability table and future rules; the [implementation roadmap](next-iteration-implementation-plan.md) provides module contracts, staged slices, migration and validation gates. Released design 0.2 remains the baseline. Proposed stages improve the original campaign first, then add the requested twelve-level return campaign; the second campaign is retained in scope.
+
+**Confirmed by the user during planning:** “scroll button” means middle-click press; word encounters belong in Keyboard/Mixed, with parallel pointer encounters through the same second-campaign story in Mouse.
+
+**Proposed reconciliations, not implementation approvals:** Spectacular default retains reduced motion; Practice removal retains untimed briefing rehearsal and Relaxed; device fallback retains primary-only as well as two-button play; Pro gains stronger pacing/authored phases without unsafe chords; leaderboards use frozen attempt context; costs round up at 1.5× without retroactive charges; campaign-two unlock requires final commander defeat rather than mere surviving escape. Legacy completion alone cannot prove defeat. Ultrawide scenery surrounds a fair fixed arena. Word corpora/layouts, scoring and deadlines need dedicated input and human validation.
+
+Planning validation: compare all feedback paragraphs against traceability and the current content/core/storage/render/audio/UI contracts; review links, price arithmetic and documentation-only diff. No new gameplay tests, assets, dependencies, builds, binaries, commits, pushes or release publication are part of this round. Exact content, Mixed button introduction, timing and real hardware evidence are assigned to future slice gates.
+
+### 2026-10-01 v1.0.0 implementation authorization
+
+The user requested building the planned next version using AGENTS.md, then explicitly designated it the actual first release v1.0. Both planned stages are implemented together as v1.0.0. The prior documentation-only restriction is superseded for this work; the preserved development/package/release flow applies. The earlier playtest remains v0.1.0.
+
+Accepted implementation choices: Mixed introduces middle/Mouse 4 at L7/L9 (no new key group there); schema 2 migrates validated schema 1; final commander defeat is persisted separately from lesson completion; returning word encounters use dedicated committed text input; shorter miniboss pools and final sentence variant boards preserve comparison context. App version is 1.0.0 and gameplay/scoring/content tuple is 2.2.2. Window size/fullscreen uses a narrow allowlisted native command; executable-local persistence and WebView2 overrides are preserved.
+
+Human tuning/hardware gates remain explicitly unverified where no device or player session is available. Automated/browser/native evidence belongs in [verification.md](verification.md); first full release does not imply certified educational efficacy, school-laptop performance or all vendor/accessibility input behavior.
+
+The user refined text presentation during implementation: **no typing popup**. Words/sentences appear beneath the boss in the arena, accepted letters immediately fire cannon beams, and completing the text resolves an authored boss pip. The committed-input adapter remains invisible and keyboard-accessible. This supersedes the earlier prototype panel.
+
+Final execution evidence: 740 tests plus typecheck/build, formatting, browser L1 and both-campaign/extended/ultrawide checks pass. Final-package native baseline and supplementary checks pass, including Finnish words/sentence, Mouse 4 navigation guard, 5120×1440 fullscreen, failed-write no-grant and blocked startup. ZIP inventory and SHA-256 checks pass. Actual screenshots and v1.0.0 release notes are refreshed; details and remaining human/device gates are in verification.md.
