@@ -212,8 +212,11 @@ export default function App() {
       : null;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-gradient-to-b from-sky-200 via-lime-100 to-lime-300 p-6">
-      <h1 className="text-4xl font-extrabold tracking-tight text-lime-900">
+    <div className="flex min-h-screen flex-col items-center gap-5 bg-gradient-to-b from-sky-200 via-lime-100 to-lime-300 p-6">
+      {/* my-auto on the first and last children centers the column when there
+          is spare space and degrades to top-anchored scrolling (never clips
+          the top) when the window is smaller than the content. */}
+      <h1 className="my-auto text-4xl font-extrabold tracking-tight text-lime-900">
         {t(lang, "title")}
       </h1>
       {game.phase === "idle" && (
@@ -381,7 +384,7 @@ export default function App() {
         </div>
       )}
 
-      <p className="text-center text-xs font-semibold text-lime-900/70">
+      <p className="my-auto text-center text-xs font-semibold text-lime-900/70">
         {t(lang, "goldenHint")} · {t(lang, "bombHint")}
       </p>
     </div>
