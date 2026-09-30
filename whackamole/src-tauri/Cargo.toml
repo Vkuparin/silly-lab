@@ -1,8 +1,8 @@
 [package]
 name = "whackamole"
-version = "0.4.5"
-description = "A Tauri App"
-authors = ["you"]
+version = "1.0.0"
+description = "A playful offline mouse-practice game"
+authors = ["Ville"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

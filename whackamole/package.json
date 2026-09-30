@@ -1,9 +1,14 @@
 {
   "name": "whackamole",
   "private": true,
-  "version": "0.4.5",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "npm test && npm run build",
+    "smoke": "node scripts/smoke.mjs",
+    "native:smoke": "node scripts/native-smoke.mjs",
+    "release:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -15,8 +20,9 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.1.11",
+    "@tauri-apps/cli": "^2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^6.0.2",

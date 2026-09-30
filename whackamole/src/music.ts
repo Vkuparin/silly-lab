@@ -23,33 +23,145 @@ export const REST = -1;
 /** Lead melody (square wave), MIDI note numbers; REST = silence. */
 export const LEAD_PATTERN: number[] = [
   // Bar 1 — Am
-  69, REST, REST, 76, REST, REST, 72, REST,
-  69, REST, REST, 65, REST, REST, 64, REST,
+  69,
+  REST,
+  REST,
+  76,
+  REST,
+  REST,
+  72,
+  REST,
+  69,
+  REST,
+  REST,
+  65,
+  REST,
+  REST,
+  64,
+  REST,
   // Bar 2 — F
-  65, REST, REST, 69, REST, REST, 72, REST,
-  69, REST, REST, 65, REST, REST, 64, REST,
+  65,
+  REST,
+  REST,
+  69,
+  REST,
+  REST,
+  72,
+  REST,
+  69,
+  REST,
+  REST,
+  65,
+  REST,
+  REST,
+  64,
+  REST,
   // Bar 3 — C
-  72, REST, REST, 67, REST, REST, 64, REST,
-  67, REST, REST, 72, REST, 64, REST, REST,
+  72,
+  REST,
+  REST,
+  67,
+  REST,
+  REST,
+  64,
+  REST,
+  67,
+  REST,
+  REST,
+  72,
+  REST,
+  64,
+  REST,
+  REST,
   // Bar 4 — G
-  74, REST, REST, 71, REST, REST, 67, REST,
-  69, REST, REST, 71, REST, 69, REST, 67,
+  74,
+  REST,
+  REST,
+  71,
+  REST,
+  REST,
+  67,
+  REST,
+  69,
+  REST,
+  REST,
+  71,
+  REST,
+  69,
+  REST,
+  67,
 ];
 
 /** Bass roots (triangle wave) on eighth notes (every even step). */
 export const BASS_PATTERN: number[] = [
   // Bar 1 — A2 (MIDI 45)
-  45, REST, 45, REST, 45, REST, 45, REST,
-  45, REST, 45, REST, 45, REST, 45, REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
+  45,
+  REST,
   // Bar 2 — F2 (MIDI 41)
-  41, REST, 41, REST, 41, REST, 41, REST,
-  41, REST, 41, REST, 41, REST, 41, REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
+  41,
+  REST,
   // Bar 3 — C3 (MIDI 48)
-  48, REST, 48, REST, 48, REST, 48, REST,
-  48, REST, 48, REST, 48, REST, 48, REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
+  48,
+  REST,
   // Bar 4 — G2 (MIDI 43)
-  43, REST, 43, REST, 43, REST, 43, REST,
-  43, REST, 43, REST, 43, REST, 43, REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
+  43,
+  REST,
 ];
 
 // ---------------------------------------------------------------------------
@@ -61,6 +173,19 @@ const LOOKAHEAD_MS = 50;
 const SCHEDULE_AHEAD_S = 0.25;
 
 let enabled = loadMusicPreference();
+let paused = false;
+let musicVolume = 0.5;
+export function setMusicVolume(value: number): void {
+  musicVolume = Math.max(0, Math.min(1, value));
+}
+export function pauseMusic(): void {
+  paused = true;
+  stop();
+}
+export function resumeMusic(): void {
+  paused = false;
+  ensureMusicRunning();
+}
 let schedulerId: number | null = null;
 let stepIndex = 0;
 let nextStepTime = 0;
@@ -90,7 +215,7 @@ function note(
   const gain = ctx.createGain();
   osc.type = type;
   osc.frequency.setValueAtTime(freq, t0);
-  gain.gain.setValueAtTime(volume, t0);
+  gain.gain.setValueAtTime(Math.max(0.0001, volume * musicVolume), t0);
   gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
   osc.connect(gain).connect(ctx.destination);
   osc.start(t0);
@@ -137,7 +262,7 @@ export function setMusicEnabled(value: boolean): void {
 }
 
 function start(): void {
-  if (!enabled || schedulerId !== null) return;
+  if (!enabled || paused || schedulerId !== null) return;
   try {
     hookVisibility();
     const ctx = getContext();
@@ -178,7 +303,7 @@ function hookVisibility(): void {
     visibilityHooked = true;
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) stop();
-      else if (enabled) start();
+      // The game resumes explicitly after focus loss.
     });
   } catch {
     // No DOM available: music simply doesn't auto-pause.

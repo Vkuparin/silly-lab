@@ -6,6 +6,10 @@ const MUTE_KEY = "whackamole.muted.v1";
 
 let audioCtx: AudioContext | null = null;
 let muted = loadMutedPreference();
+let effectVolume = 0.7;
+export function setEffectVolume(value: number): void {
+  effectVolume = Math.max(0, Math.min(1, value));
+}
 
 function loadMutedPreference(): boolean {
   try {
@@ -34,7 +38,8 @@ export function getContext(): AudioContext | null {
     if (audioCtx === null) {
       const Ctor =
         globalThis.AudioContext ??
-        (globalThis as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        (globalThis as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
       if (Ctor === undefined) return null;
       audioCtx = new Ctor();
     }
@@ -65,9 +70,12 @@ function scheduleTone(ctx: AudioContext, tone: ToneOptions): void {
   osc.type = type;
   osc.frequency.setValueAtTime(freq, t0);
   if (freqEnd !== undefined) {
-    osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + duration);
+    osc.frequency.exponentialRampToValueAtTime(
+      Math.max(1, freqEnd),
+      t0 + duration,
+    );
   }
-  gain.gain.setValueAtTime(volume, t0);
+  gain.gain.setValueAtTime(Math.max(0.0001, volume * effectVolume), t0);
   gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
   osc.connect(gain).connect(ctx.destination);
   osc.start(t0);
@@ -84,7 +92,15 @@ function play(tones: ToneOptions[]): void {
 /** Short low "thock" for a normal whack. */
 export function playHit(): void {
   try {
-    play([{ freq: 170, freqEnd: 80, type: "triangle", duration: 0.09, volume: 0.25 }]);
+    play([
+      {
+        freq: 170,
+        freqEnd: 80,
+        type: "triangle",
+        duration: 0.09,
+        volume: 0.25,
+      },
+    ]);
   } catch {
     // silent no-op
   }
@@ -106,8 +122,13 @@ export function playGolden(): void {
 export function playBomb(): void {
   try {
     play([
-      { freq: 75, freqEnd: 45, type: "sawtooth", duration: 0.35, volume: 0.3 },
-      { freq: 55, freqEnd: 38, type: "square", at: 0.02, duration: 0.3, volume: 0.12 },
+      {
+        freq: 160,
+        freqEnd: 100,
+        type: "triangle",
+        duration: 0.18,
+        volume: 0.12,
+      },
     ]);
   } catch {
     // silent no-op

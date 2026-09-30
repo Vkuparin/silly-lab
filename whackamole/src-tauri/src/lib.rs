@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use tauri::utils::config::AppDirectoriesOverride;
+use tauri::Manager;
 
 /// Portable mode: when a `portable.txt` marker sits next to the executable
 /// (shipped inside the portable zip), all app data — high scores, language
@@ -29,6 +30,20 @@ pub fn run() {
   }
 
   tauri::Builder::default()
+    .setup(|app| {
+      if let Some(window) = app.get_webview_window("main") {
+        if let Some(monitor) = window.current_monitor()? {
+          let area = monitor.work_area();
+          let scale = monitor.scale_factor();
+          let width = (area.size.width as f64 / scale - 32.0).clamp(400.0, 1100.0);
+          let height = (area.size.height as f64 / scale - 48.0).clamp(400.0, 720.0);
+          window.set_min_size(Some(tauri::LogicalSize::new(width.min(800.0), height.min(560.0))))?;
+          window.set_size(tauri::LogicalSize::new(width, height))?;
+          window.center()?;
+        }
+      }
+      Ok(())
+    })
     .run(context)
     .expect("error while running tauri application");
 }

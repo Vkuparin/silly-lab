@@ -1,0 +1,18 @@
+Whack-a-Mole 1.0.0 — portable Windows x64
+
+Extract the entire ZIP into a writable folder and run whackamole.exe.
+This portable.txt marker must remain beside the executable. With the marker,
+the game stores its WebView2 profile, local players, records and settings in
+the data folder beside the executable. Copy that folder too to carry saves.
+Do not run from inside the ZIP or a protected/read-only folder.
+
+Microsoft Edge WebView2 Runtime is required. Windows installer packages can
+download/install it when needed; the portable ZIP does not bundle the runtime.
+After the runtime is present, the game plays completely offline.
+
+The main menu has Toggle fullscreen and Exit game. Exit closes the native
+window even in fullscreen. Alt+F4 also closes it. Pause or Esc pauses play;
+focus loss pauses automatically and requires Resume.
+
+Removing data clears portable progress. Without this marker the executable
+uses the standard per-user application data location instead.
