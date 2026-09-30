@@ -50,6 +50,7 @@ export const words = {
   defaultLook: ['Purchased cannon', 'Ostettu tykki'],
   resolution: ['Window size / fullscreen', 'Ikkunan koko / koko näyttö'],
   fullscreen: ['Fullscreen (monitor size)', 'Koko näyttö (näytön koko)'],
+  exit: ['Exit', 'Lopeta'],
   exitFullscreen: ['Exit fullscreen', 'Poistu koko näytöstä'],
   displayFailed: [
     'This display size is unavailable. Try a smaller window or fullscreen.',
@@ -259,7 +260,7 @@ export const words = {
   thumb: ['Either thumb', 'Kumpi tahansa peukalo'],
   arrowFinger: ['Comfortable navigation finger', 'Sopiva sormi navigointiin'],
   suggestion: ['Rehearse these in the briefing', 'Harjoittele näitä tehtävänannossa'],
-  version: ['Version 1.0.0', 'Versio 1.0.0'],
+  version: ['Version 1.1.0', 'Versio 1.1.0'],
   deviceCheck: ['Input check', 'Syötteen tarkistus'],
   inputSeen: ['Last input', 'Viimeisin syöte'],
   releaseStart: [

@@ -106,6 +106,10 @@ fn save_data(text: String, expected: u64, disk: tauri::State<Disk>) -> Result<()
     Ok(())
 }
 #[tauri::command]
+fn exit_game(app: tauri::AppHandle) {
+    app.exit(0);
+}
+#[tauri::command]
 fn set_display(window: tauri::WebviewWindow, preset: String) -> Result<(), String> {
     if preset == "fullscreen" {
         return window.set_fullscreen(true).map_err(|e| e.to_string());
@@ -167,7 +171,12 @@ pub fn run() {
             revision: Mutex::new(0),
             _lock: lock,
         })
-        .invoke_handler(tauri::generate_handler![load_data, save_data, set_display])
+        .invoke_handler(tauri::generate_handler![
+            load_data,
+            save_data,
+            set_display,
+            exit_game
+        ])
         .setup(move |app| {
             let window =
                 tauri::WebviewWindowBuilder::from_config(app, &app.config().app.windows[0])?

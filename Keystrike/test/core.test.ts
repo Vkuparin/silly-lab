@@ -110,7 +110,7 @@ test('hit wins before simultaneous impact; escape pays nothing and unlock outcom
   const g = new Game(config());
   g.transition('boss');
   const t = g.targets[0];
-  t.pip = 3;
+  t.pip = t.steps.length - 1;
   t.ready = 0;
   g.time = t.deadline;
   act(g, t);
@@ -119,7 +119,7 @@ test('hit wins before simultaneous impact; escape pays nothing and unlock outcom
   assert(g.bossKilled);
   const escape = new Game(config());
   escape.transition('boss');
-  for (let i = 0; i < 1500 && !escape.finished; i++) escape.step(1 / 60);
+  for (let i = 0; i < 3000 && !escape.finished; i++) escape.step(1 / 60);
   assert(escape.finished);
   assert.equal(escape.shield, 4);
   assert.equal(escape.salvage, 0);
@@ -173,7 +173,7 @@ test('pause clears partial without miss; primary-only substitutes every level', 
   const g = new Game(config({ rules: 'pro', level: 12 }));
   g.transition('boss');
   const t = g.targets[0];
-  t.pip = 6;
+  t.pip = t.steps.findIndex((p) => p.kind === 'pair' && p.key === 'w');
   g.step(0.1);
   g.step(0.1);
   g.action({ kind: 'key', key: 'w' });

@@ -108,3 +108,10 @@ Human tuning/hardware gates remain explicitly unverified where no device or play
 The user refined text presentation during implementation: **no typing popup**. Words/sentences appear beneath the boss in the arena, accepted letters immediately fire cannon beams, and completing the text resolves an authored boss pip. The committed-input adapter remains invisible and keyboard-accessible. This supersedes the earlier prototype panel.
 
 Final execution evidence: 740 tests plus typecheck/build, formatting, browser L1 and both-campaign/extended/ultrawide checks pass. Final-package native baseline and supplementary checks pass, including Finnish words/sentence, Mouse 4 navigation guard, 5120×1440 fullscreen, failed-write no-grant and blocked startup. ZIP inventory and SHA-256 checks pass. Actual screenshots and v1.0.0 release notes are refreshed; details and remaining human/device gates are in verification.md.
+
+
+### 2026-10-01 v1.1.0 small update
+
+The user reported Pro continuation entering a locked next level, requested Next level emphasis after success when the next level is unbeaten, a fullscreen-safe main-menu Exit, no main-menu mode badge, and approximately 50% longer waves/minibosses/bosses across all modes. Implementation, push and release are explicitly authorized. The [amendment](update-v1.1.0.md) fixes route-specific eligibility and increases active combat workload rather than adding waiting. App version 1.1.0, comparison tuple 3.2.3; save schema 2 and executable-local storage remain.
+
+Execution: 741 tests/typecheck/build and formatting pass. Actual results Pro replay and both continuation branches pass. Final native baseline passes, including fullscreen menu Exit (process code 0); native extended/Finnish word/sentence/storage-failure checks pass. Full browser campaign/ending/ultrawide checks pass; README screenshots, release notes, package inventory and checksums are updated. See verification.md for measurements and remaining human/device limits.

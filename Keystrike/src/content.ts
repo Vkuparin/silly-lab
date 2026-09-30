@@ -2,7 +2,7 @@ export type Track = 'keyboard' | 'mouse' | 'mixed';
 export type Rules = 'standard' | 'relaxed' | 'pro';
 export type Layout = 'fi' | 'us';
 export type Lang = 'fi' | 'en';
-export const VERSION = '2.2.2'; // gameplay.scoring.content; change when comparable rules change
+export const VERSION = '3.2.3'; // gameplay.scoring.content; change when comparable rules change
 export const roster = [
   ['The Wobbler', 'Vaappuja'],
   ['Rusty Rex', 'Ruoste-Rex'],
@@ -17,6 +17,7 @@ export const roster = [
   ['Admiral Clank', 'Amiraali Kolina'],
   ['Scrap King', 'Romukuningas'],
 ];
+// v1.1: 50% more wave time and encounter inputs, keeping spawn/travel pressure.
 export const pacing = [
   [20, 5, 10, 1, 2, 4],
   [24, 4, 10, 2, 2, 5],
@@ -30,7 +31,14 @@ export const pacing = [
   [34, 1.6, 7, 5, 4, 15],
   [34, 1.4, 7, 5, 5, 16],
   [36, 1.2, 6.5, 6, 5, 20],
-];
+].map(([wave, interval, travel, cap, mini, boss]) => [
+  wave * 1.5,
+  interval,
+  travel,
+  cap,
+  Math.ceil(mini * 1.5),
+  Math.ceil(boss * 1.5),
+]);
 export function additions(track: Track, level: number, layout: Layout): string[] {
   const fi = layout === 'fi';
   const keyboard = [
@@ -159,7 +167,7 @@ export function validateContent() {
           keys.some((k) => !['a', 'd', 'w', 's', 'q', 'e', 'f', 'Space', 'z', 'x', 'c'].includes(k))
         )
           throw Error('Mixed curriculum');
-        if (pacing[l - 1][5] > 20 || pacing[l - 1][3] > 6) throw Error('Entity budget');
+        if (pacing[l - 1][5] > 30 || pacing[l - 1][3] > 6) throw Error('Entity budget');
       }
   for (const c of catalog)
     if (

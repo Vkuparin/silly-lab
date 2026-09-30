@@ -249,8 +249,8 @@ export class Game {
       ];
       const wordCount =
         kind === 'mini'
-          ? 2 + Math.floor((this.config.level - 1) / 4)
-          : 4 + Math.floor((this.config.level - 1) / 2);
+          ? Math.ceil((2 + Math.floor((this.config.level - 1) / 4)) * 1.5)
+          : Math.ceil((4 + Math.floor((this.config.level - 1) / 2)) * 1.5);
       steps.splice(
         0,
         steps.length,

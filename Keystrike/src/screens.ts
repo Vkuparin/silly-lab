@@ -58,7 +58,7 @@ export function screenHtml(v: ViewState) {
   const back = (heading: Word) =>
     `<div class="actions">${btn('back', 'home')}<h2 style="margin:0">${t(heading)}</h2></div>`;
   if (screen === 'home')
-    return `<section class="stage"><canvas aria-label="Helsinki"></canvas><div class="home-overlay"><div class="hero"><div class="eyebrow">${t('tagline')}</div><h1>KEYSTRIKE${s.lang === 'fi' ? '<span class="subtitle">NÄPPÄINISKU</span>' : ''}</h1><p>${t('intro')}</p><div class="actions">${btn('play', 'setup', true)}</div><nav class="home-nav">${btn('hangar', 'hangar')}${btn('scores', 'scores')}${btn('settings', 'settings')}</nav><span class="hero-tag">${t('defense')} + ${t('return')}</span></div></div></section>`;
+    return `<section class="stage"><canvas aria-label="Helsinki"></canvas><div class="home-overlay"><div class="hero"><div class="eyebrow">${t('tagline')}</div><h1>KEYSTRIKE${s.lang === 'fi' ? '<span class="subtitle">NÄPPÄINISKU</span>' : ''}</h1><p>${t('intro')}</p><div class="actions">${btn('play', 'setup', true)}</div><nav class="home-nav">${btn('hangar', 'hangar')}${btn('scores', 'scores')}${btn('settings', 'settings')}${btn('exit', 'exit')}</nav><span class="hero-tag">${t('defense')} + ${t('return')}</span></div></div></section>`;
   if (screen === 'setup') {
     const p = d.progress[progressKey(s)],
       allowed = campaignUnlocked(s, d);
@@ -98,6 +98,8 @@ export function screenHtml(v: ViewState) {
     const p =
       d.progress[progressKey({ ...s, ...g.config, campaign: g.campaign, mouseProfile: g.profile })];
     const canPro = !!p?.completed.includes(g.config.level);
+    const canNext = g.config.level < 12 && g.shield > 0;
+    const nextPrimary = canNext && !p?.completed.includes(g.config.level + 1);
     const rows = d.scores.filter((r) => r.board === g.board);
     const samples = [...g.responses].sort((a, b) => a - b);
     return `<div class="screen"><section class="panel result-heading"><div class="eyebrow">${t(g.campaign)} / ${g.config.level} · ${t(g.config.track)} · ${t(g.config.rules)}</div><h2>${t(final ? 'victory' : g.shield <= 0 ? 'depleted' : g.bossKilled ? 'defeated' : 'escaped')}</h2><span class="stars">${'★'.repeat(g.stars)}${'☆'.repeat(3 - g.stars)}</span>${final && g.campaign === 'defense' && v.completed ? `<p>${t('unlockReturn')}</p>` : ''}</section><div class="columns"><section class="panel"><h3>${t('scores')}</h3>${leaderboard(rows, t)}${!v.decision ? `<div class="candidate"><span>${t('unsavedScore')}</span><b>${g.score.toLocaleString(s.lang)}</b></div>` : ''}<div class="field"><label for="nickname">${t('nickname')}</label><input id="nickname" value="${esc(s.remember ? s.nickname : '')}" maxlength="80" autocomplete="off"></div><details><summary>${t('onScreen')}</summary><div class="osk">${'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ0123456789'
@@ -105,7 +107,7 @@ export function screenHtml(v: ViewState) {
       .map((k) => `<button data-letter="${k}" class="small">${k}</button>`)
       .join(
         '',
-      )}<button data-letter=" " class="small">␣</button><button data-letter="backspace" class="small">⌫</button></div></details>${check('remember', 'remember', s.remember)}<div class="actions">${btn('save', 'save', true, !!v.decision || v.scoreBusy)}${btn('skip', 'skip', false, !!v.decision)}</div><p id="score-status" role="status">${v.decision ? t(v.decision as Word) : ''}</p></section><section class="panel">${canPro && g.config.rules !== 'pro' ? `<h3>${t('replayPro')}</h3>` : ''}${select('replayRules', 'replayRules', canPro ? ['standard', 'relaxed', 'pro'] : ['standard', 'relaxed'], v.replayRules)}<div class="actions">${btn('retry', 'retry', true)}${g.config.level < 12 && g.shield > 0 ? btn('next', 'next') : ''}${btn('hangar', 'hangar')}${btn('home', 'home')}</div>${v.pending || !v.completed ? `<div class="notice">${t('writeFailed')}${btn('retrySave', 'retryRewards')}</div>` : ''}<details class="attempt-details"><summary>${t('details')}</summary><div class="metrics">${(
+      )}<button data-letter=" " class="small">␣</button><button data-letter="backspace" class="small">⌫</button></div></details>${check('remember', 'remember', s.remember)}<div class="actions">${btn('save', 'save', true, !!v.decision || v.scoreBusy)}${btn('skip', 'skip', false, !!v.decision)}</div><p id="score-status" role="status">${v.decision ? t(v.decision as Word) : ''}</p></section><section class="panel">${canPro && g.config.rules !== 'pro' ? `<h3>${t('replayPro')}</h3>` : ''}${select('replayRules', 'replayRules', canPro ? ['standard', 'relaxed', 'pro'] : ['standard', 'relaxed'], v.replayRules)}<div class="actions">${btn('retry', 'retry', !nextPrimary)}${canNext ? btn('next', 'next', nextPrimary) : ''}${btn('hangar', 'hangar')}${btn('home', 'home')}</div>${v.pending || !v.completed ? `<div class="notice">${t('writeFailed')}${btn('retrySave', 'retryRewards')}</div>` : ''}<details class="attempt-details"><summary>${t('details')}</summary><div class="metrics">${(
       [
         ['score', g.score],
         ['accuracy', g.accuracy === null ? '—' : Math.round(g.accuracy * 100) + '%'],

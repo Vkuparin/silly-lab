@@ -14,6 +14,8 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 await mkdir('docs/screenshots', { recursive: true });
 await page.goto('http://127.0.0.1:1430');
+assert.equal(await page.locator('.topbar .preset-badge').count(), 0);
+assert.equal(await page.locator('[data-action="exit"]').count(), 1);
 await page.locator('[data-action="language"]').click();
 await page.screenshot({ path: 'docs/screenshots/home.png', fullPage: true });
 await page.locator('[data-action="setup"]').click();
@@ -29,57 +31,66 @@ let shot = false,
   boss = false,
   pauses = 0;
 const started = Date.now();
-while (Date.now() - started < 100000) {
-  const state = await page.evaluate(() => {
-    const k = window.__keystrike;
-    return {
-      screen: k.screen,
-      phase: k.game?.phase,
-      time: k.game?.time,
-      targets: k.game?.targets.map((t) => ({
-        x: t.x,
-        y: t.y,
-        ready: t.ready,
-        p: t.steps[t.pip],
-        kind: t.kind,
-      })),
-    };
-  });
-  if (state.screen === 'results') break;
-  if (await page.locator('[data-action="resume"]').isVisible()) {
-    pauses++;
-    await page.locator('[data-action="resume"]').click();
-    await page.waitForTimeout(3100);
-    continue;
-  }
-  if (!shot && state.targets?.length) {
-    await page.screenshot({ path: 'docs/screenshots/combat.png' });
-    shot = true;
-  }
-  if (!boss && state.phase === 'boss') {
-    await page.screenshot({ path: 'docs/screenshots/boss.png' });
-    boss = true;
-  }
-  for (const target of state.targets ?? []) {
-    if (state.time < target.ready) continue;
-    const p = target.p;
-    if (p.kind === 'key')
-      await page.keyboard.press(
-        p.key === 'Space' ? 'Space' : p.key === 'ShiftLeft' ? 'ShiftLeft' : p.key,
-      );
-    else if (p.kind === 'pair') {
-      await page.keyboard.press('ShiftLeft');
-      await page.keyboard.press(p.key === 'Space' ? 'Space' : p.key);
-    } else {
-      const r = await page.locator('#playfield').boundingBox();
-      await page.mouse.click(r.x + (target.x / 1080) * r.width, r.y + (target.y / 620) * r.height, {
-        button: p.button === 2 ? 'right' : 'left',
-      });
+async function playLevel(capture = false) {
+  const began = Date.now();
+  while (Date.now() - began < 100000) {
+    const state = await page.evaluate(() => {
+      const k = window.__keystrike;
+      return {
+        screen: k.screen,
+        phase: k.game?.phase,
+        time: k.game?.time,
+        targets: k.game?.targets.map((t) => ({
+          x: t.x,
+          y: t.y,
+          ready: t.ready,
+          p: t.steps[t.pip],
+          kind: t.kind,
+        })),
+      };
+    });
+    if (state.screen === 'results') break;
+    if (await page.locator('[data-action="resume"]').isVisible()) {
+      pauses++;
+      await page.locator('[data-action="resume"]').click();
+      await page.waitForTimeout(3100);
+      continue;
     }
+    if (capture && !shot && state.targets?.length) {
+      await page.screenshot({ path: 'docs/screenshots/combat.png' });
+      shot = true;
+    }
+    if (capture && !boss && state.phase === 'boss') {
+      await page.screenshot({ path: 'docs/screenshots/boss.png' });
+      boss = true;
+    }
+    for (const target of state.targets ?? []) {
+      if (state.time < target.ready) continue;
+      const p = target.p;
+      if (p.kind === 'key')
+        await page.keyboard.press(
+          p.key === 'Space' ? 'Space' : p.key === 'ShiftLeft' ? 'ShiftLeft' : p.key,
+        );
+      else if (p.kind === 'pair') {
+        await page.keyboard.press('ShiftLeft');
+        await page.keyboard.press(p.key === 'Space' ? 'Space' : p.key);
+      } else {
+        const r = await page.locator('#playfield').boundingBox();
+        await page.mouse.click(
+          r.x + (target.x / 1080) * r.width,
+          r.y + (target.y / 620) * r.height,
+          {
+            button: p.button === 2 ? 'right' : 'left',
+          },
+        );
+      }
+    }
+    await page.waitForTimeout(80);
   }
-  await page.waitForTimeout(80);
+  await page.waitForSelector('[data-action="save"]');
 }
-await page.waitForSelector('[data-action="save"]');
+await playLevel(true);
+assert.equal(await page.locator('[data-action="next"]').getAttribute('class'), 'primary');
 assert(boss, 'boss encounter seen');
 assert(shot, 'combat seen');
 assert.equal(await page.evaluate(() => window.__keystrike.game.stars), 3);
@@ -87,6 +98,21 @@ await page.locator('#nickname').fill('Test Ääni');
 await page.locator('[data-action="save"]').click();
 await page.waitForFunction(() => window.__keystrike.store.data.scores.length === 1);
 await page.screenshot({ path: 'docs/screenshots/results.png', fullPage: true });
+// Actual Standard -> Pro replay -> new level must fall back to Standard.
+await page.locator('#replayRules').selectOption('pro');
+await page.locator('[data-action="retry"]').click();
+await page.locator('[data-action="launch"]').click();
+await playLevel();
+assert.equal(await page.locator('[data-action="next"]').getAttribute('class'), 'primary');
+await page.locator('[data-action="next"]').click();
+assert.equal(await page.evaluate(() => window.__keystrike.store.data.settings.rules), 'standard');
+await page.locator('[data-action="launch"]').click();
+await page.waitForSelector('#playfield');
+assert.equal(await page.evaluate(() => window.__keystrike.game.config.level), 2);
+page.on('dialog', (dialog) => dialog.accept());
+await page.locator('[data-action="pause"]').click();
+await page.locator('[data-action="leave"]').click();
+await page.waitForSelector('[data-action="setup"]');
 await page.locator('[data-action="hangar"]').click();
 await page.locator('[data-shop="color:1"]').click();
 await page.locator('[data-shop="color:1"]').click();
@@ -102,6 +128,28 @@ assert.equal(
   await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
   false,
 );
+// Existing completion of level 2 must preserve Pro on continuation.
+await page.evaluate(async () => {
+  const k = window.__keystrike;
+  await k.store.change((d) => {
+    const p = Object.values(d.progress)[0];
+    p.completed = [1, 2];
+    p.unlocked = 3;
+    d.settings.rules = 'pro';
+  });
+});
+await page.reload();
+await page.locator('[data-action="setup"]').click();
+await page.locator('[data-level="1"]').click();
+await page.locator('[data-action="briefing"]').click();
+await page.locator('[data-action="launch"]').click();
+await playLevel();
+assert.notEqual(await page.locator('[data-action="next"]').getAttribute('class'), 'primary');
+await page.locator('[data-action="next"]').click();
+assert.equal(await page.evaluate(() => window.__keystrike.store.data.settings.rules), 'pro');
+await page.locator('[data-action="launch"]').click();
+await page.waitForSelector('#playfield');
+assert.equal(await page.evaluate(() => window.__keystrike.game.config.level), 2);
 assert.deepEqual(errors, []);
 console.log(
   JSON.stringify({
@@ -109,6 +157,7 @@ console.log(
     elapsedSeconds: Math.round((Date.now() - started) / 1000),
     pauses,
     screenshots: 7,
+    proContinuation: true,
     errors,
   }),
 );

@@ -1,4 +1,4 @@
-KEYSTRIKE / NÄPPÄINISKU 1.0.0 — WINDOWS X64
+KEYSTRIKE / NÄPPÄINISKU 1.1.0 — WINDOWS X64
 
 Extract the whole ZIP into a writable folder, then launch Keystrike.exe.
 Microsoft Edge WebView2 Runtime must already be installed. It is not included.
@@ -40,3 +40,5 @@ https://github.com/Vkuparin/silly-lab/tree/main/Keystrike
 
 This release has not been certified on school laptops or through
 supervised child/Sticky Keys/Filter Keys testing. See the release notes.
+
+Main menu Exit closes the game, including fullscreen. Next level uses Standard if Pro is not unlocked there. Wave time and encounter inputs are approximately 50% longer than v1.0.

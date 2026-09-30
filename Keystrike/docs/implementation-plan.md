@@ -214,3 +214,6 @@ Before a separate coding task starts:
 - Leave later publishing, non-Windows promises, mechanical upgrades and deferred modes out unless separately requested.
 
 The handoff is ready for review; no milestone has been executed and no test result or working game is implied.
+
+
+**Current v1.1.0:** The authorized [small-update amendment](update-v1.1.0.md) governs next-level eligibility/results emphasis, main-menu Exit/badge removal and approximately 50% longer combat. See [release notes](releases/v1.1.0.md) and [verification](verification.md).

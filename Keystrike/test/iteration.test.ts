@@ -229,3 +229,52 @@ test('final victory unlocks exact route independently of saving scores; earned l
     s.data.progress[progressKey({ ...s.data.settings, campaign: 'return' })].commanders.includes(1),
   );
 });
+
+test('v1.1 retains wave pressure while adding 50% encounter work in every preset/campaign', () => {
+  const old = [
+    [20, 2, 4],
+    [24, 2, 5],
+    [24, 2, 6],
+    [28, 3, 7],
+    [28, 3, 8],
+    [30, 3, 10],
+    [30, 4, 11],
+    [32, 4, 12],
+    [32, 4, 13],
+    [34, 4, 15],
+    [34, 5, 16],
+    [36, 5, 20],
+  ];
+  for (const campaign of ['defense', 'return'] as const)
+    for (const rules of ['standard', 'relaxed', 'pro'] as const)
+      for (let level = 1; level <= 12; level++) {
+        const g = new Game(config({ campaign, rules, level, track: 'mouse' }));
+        g.transition('waveA');
+        const expected = (old[level - 1][0] / 2) * 1.5 * (rules === 'relaxed' ? 1.5 : 1);
+        g.time = expected - 0.1;
+        g.step(1 / 60);
+        assert.equal(g.phase, 'waveA');
+        g.time = expected;
+        g.step(1 / 60);
+        assert.equal(g.phase, 'drainA');
+        for (const kind of ['mini', 'boss'] as const) {
+          const fight = new Game(config({ campaign, rules, level, track: 'mouse' }));
+          fight.transition(kind);
+          assert.equal(
+            fight.targets[0].steps.length,
+            Math.ceil(old[level - 1][kind === 'mini' ? 1 : 2] * 1.5),
+          );
+        }
+        const text = new Game(config({ campaign: 'return', rules, level }));
+        for (const kind of ['mini', 'boss'] as const) {
+          text.targets = [];
+          text.transition(kind);
+          const oldWords =
+            kind === 'mini' ? 2 + Math.floor((level - 1) / 4) : 4 + Math.floor((level - 1) / 2);
+          assert.equal(
+            text.targets[0].steps.length,
+            Math.ceil(oldWords * 1.5) + (kind === 'boss' && level === 12 ? 1 : 0),
+          );
+        }
+      }
+});

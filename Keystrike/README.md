@@ -4,7 +4,7 @@
 
 ![Keystrike menu and Helsinki waterfront](docs/screenshots/home.png)
 
-**v1.0.0 — first full Windows release.** [Download the executable or portable ZIP](https://github.com/Vkuparin/silly-lab/releases/tag/keystrike-v1.0.0). The ZIP includes quick-start instructions, license notices and the same standalone game executable. Microsoft **WebView2 Runtime is required**, separately from the game.
+**v1.1.0 — Windows update.** [Download the executable or portable ZIP](https://github.com/Vkuparin/silly-lab/releases/tag/keystrike-v1.1.0). The ZIP includes quick-start instructions, license notices and the same standalone game executable. Microsoft **WebView2 Runtime is required**, separately from the game.
 
 ## Play
 
@@ -16,9 +16,9 @@ Extract into a writable folder and launch `Keystrike.exe`. Finnish is the first-
 | Mouse | Aim inside the ring and press the pictured logical button. Primary-only/trackpad and two-button profiles; opt-in middle click (L7) and Mouse 4 (L9) with a button check. |
 | Mixed | WASD-area key triggers plus aimed clicks, with a separate gaming curriculum. |
 
-Both twelve-level campaigns have waves, a miniboss and a named commander with distinct attack phases. Wrong inputs reset streak without damaging the city. Surviving a commander escape still unlocks the next lesson. Every outcome offers **Save score or Skip**. Optional names and top-ten boards stay local; rewards and unlocks do not depend on saving a score.
+Both twelve-level campaigns have approximately 50% longer combat than v1.0: waves, a miniboss and a named commander with distinct attack phases. Wrong inputs reset streak without damaging the city. Surviving a commander escape still unlocks the next lesson. Every outcome offers **Save score or Skip**. Optional names and top-ten boards stay local; rewards and unlocks do not depend on saving a score.
 
-Standard, generous Relaxed and per-level unlockable Pro are available, with distinct presentation. Untimed rehearsal stays in the mission briefing. Late first-campaign Keyboard/Mixed Pro uses **tap → release → tap** Shift sequences in either order, never held chords or Ctrl combinations. Use any-Shift or Standard when device/accessibility behavior differs. Escape pauses; focus loss and resizing pause automatically. Release keys before launch/resume. Menus support Tab/Enter and primary pointer input.
+Standard, generous Relaxed and per-level unlockable Pro are available, with distinct presentation. Untimed rehearsal stays in the mission briefing. Late first-campaign Keyboard/Mixed Pro uses **tap → release → tap** Shift sequences in either order, never held chords or Ctrl combinations. Use any-Shift or Standard when device/accessibility behavior differs. Escape pauses; focus loss and resizing pause automatically. Release keys before launch/resume. Menus support Tab/Enter and primary pointer input. Main-menu Exit also closes fullscreen play. Next level falls back from Pro to Standard when Pro is still locked there.
 
 ![Actual commander encounter](docs/screenshots/boss.png)
 
@@ -76,6 +76,6 @@ npm run native:iteration # native buttons, words, fullscreen, write failures
 
 Node 24+ (tested on 26), Rust stable/MSVC build tools and WebView2 are needed for development. Dependencies are locked. The release script stages locally; publish namespaced `keystrike-vX.Y.Z` tags after native smoke checks.
 
-**Future agents must read [AGENTS.md](AGENTS.md)** for the preserved planning, architecture, test, storage, versioning and publishing patterns. See [technical decisions](docs/technical-decisions.md), [verification evidence](docs/verification.md), [release notes](docs/releases/v1.0.0.md), [asset provenance](assets/manifest.md), and the original [design](docs/game-design.md), [plan](docs/implementation-plan.md), and [review history](docs/review.md).
+**Future agents must read [AGENTS.md](AGENTS.md)** for the preserved planning, architecture, test, storage, versioning and publishing patterns. See [technical decisions](docs/technical-decisions.md), [verification evidence](docs/verification.md), [release notes](docs/releases/v1.1.0.md), [asset provenance](assets/manifest.md), and the original [design](docs/game-design.md), [plan](docs/implementation-plan.md), and [review history](docs/review.md).
 
 v0.1.0 was the historical playtest; v1.0.0 is the first full release. School-laptop performance, supervised beginner learning/fun and real Sticky/Filter Keys layout compatibility have not been established. Human sessions should guide tuning; synthetic tests do not certify typing progress. Windows x64 only; unsigned executable; WebView2 is not bundled.

@@ -124,11 +124,24 @@ assert.equal(recovered.balance, data.balance);
 assert.equal(recovered.owned.color, 1);
 assert.equal(recovered.scores.length, 1);
 assert((await readdir(path.join(moved, 'data'))).some((n) => n.startsWith('save.corrupt-')));
+await run.page.locator('[data-action="settings"]').click();
+await run.page.locator('#resolution').selectOption('fullscreen');
+await sleep(400);
+await run.page.locator('[data-action="home"]').click();
+assert.equal(await run.page.locator('.topbar .preset-badge').count(), 0);
+const exited = new Promise((resolve) => run.child.once('exit', resolve));
+await run.page.locator('[data-action="exit"]').focus();
+await run.page.keyboard.press('Enter').catch(() => {});
+assert.equal(
+  await Promise.race([exited, sleep(5000).then(() => 'timeout')]),
+  0,
+  'fullscreen menu Exit closes native process',
+);
 await run.browser.close();
-run.child.kill();
 console.log(
   JSON.stringify({
     ok: true,
+    fullscreenExit: true,
     pauses,
     elapsedSeconds: Math.round((Date.now() - start) / 1000),
     location: moved,

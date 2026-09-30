@@ -2,9 +2,9 @@
 
 Version: 0.2 · Date: 2026-09-30 · Status: implementation authorized; first playable release 0.1.0. See [technical decisions](technical-decisions.md) and [verification](verification.md) for evidence and remaining human validation.
 
-**Current release (2026-10-01):** This document retains the v0.1.0 baseline. The approved [v1.0.0 design amendment](next-iteration-design.md) governs removals, combat/presentation changes and the second campaign for the first full release. See its [roadmap](next-iteration-implementation-plan.md), [release notes](releases/v1.0.0.md) and [verification](verification.md).
+**v1.0 baseline (2026-10-01):** This document retains the v0.1.0 baseline. The approved [v1.0.0 design amendment](next-iteration-design.md) governs removals, combat/presentation changes and the second campaign for the first full release. See its [roadmap](next-iteration-implementation-plan.md), [release notes](releases/v1.0.0.md) and [verification](verification.md).
 
-This revision incorporates [ReviewerFeedback.md](ReviewerFeedback.md). The [decision log](review.md) records accepted proposals, corrections, and deferrals; the [original implementation plan](implementation-plan.md) records the first-release framework. All timing, prices, and budgets are provisional playtest values. The original documentation-only phase is historical; the first release is implemented, while the linked next-iteration amendment is planning only.
+This revision incorporates [ReviewerFeedback.md](ReviewerFeedback.md). The [decision log](review.md) records accepted proposals, corrections, and deferrals; the [original implementation plan](implementation-plan.md) records the first-release framework. All timing, prices, and budgets are provisional playtest values. The original documentation-only phase is historical; the first release is implemented, and the linked v1.0 and v1.1 amendments are implemented.
 
 ## 1. Game promise
 
@@ -392,3 +392,6 @@ Supervised exploratory playtests include younger Calm/Relaxed and older Standard
 ## 16. Remaining review gates
 
 Confirm Windows-first/runtime package, reference hardware, v1 scope, boss-escape unlock rule, and release-separated Pro semantics. Timing/prices/names remain provisional. Any changed settled rule must update this design, plan, decision log, and affected acceptance checks together. No implementation begins without a separate request.
+
+
+**Current v1.1.0:** The authorized [small-update amendment](update-v1.1.0.md) governs next-level eligibility/results emphasis, main-menu Exit/badge removal and approximately 50% longer combat. See [release notes](releases/v1.1.0.md) and [verification](verification.md).

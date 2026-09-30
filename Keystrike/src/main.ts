@@ -61,7 +61,7 @@ function language() {
   return `<div class="top-right"><button class="small ghost" data-action="language" aria-label="${t('language')}">${store.data.settings.lang === 'fi' ? 'ENGLISH' : 'SUOMI'}</button></div>`;
 }
 function layout(body: string) {
-  app.innerHTML = `<main class="shell" data-rules="${screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules}"><header class="topbar"><div class="brand"><span class="mark">⌁</span>KEYSTRIKE</div><span class="preset-badge">${{ standard: '◆', relaxed: '◉', pro: '▲' }[screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules]} ${t(screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules)}</span>${language()}</header>${notice()}${body}<footer class="footer"><span>${t('version')}</span><span>HELSINKI / 60°10′ N &nbsp; · &nbsp; ${t('quiet')}</span></footer></main>`;
+  app.innerHTML = `<main class="shell" data-rules="${screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules}"><header class="topbar"><div class="brand"><span class="mark">⌁</span>KEYSTRIKE</div>${screen === 'home' ? '' : `<span class="preset-badge">${{ standard: '◆', relaxed: '◉', pro: '▲' }[screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules]} ${t(screen === 'playing' || screen === 'results' ? (game?.config.rules ?? store.data.settings.rules) : store.data.settings.rules)}</span>`}${language()}</header>${notice()}${body}<footer class="footer"><span>${t('version')}</span><span>HELSINKI / 60°10′ N &nbsp; · &nbsp; ${t('quiet')}</span></footer></main>`;
   document.documentElement.lang = store.data.settings.lang;
   renderer = null;
   bind();
@@ -76,8 +76,8 @@ function unlocked() {
     store.data.progress[progressKey(store.data.settings)]?.unlocked ?? 1,
   );
 }
-function proEligible() {
-  return !!store.data.progress[progressKey(store.data.settings)]?.completed.includes(level);
+function proEligible(targetLevel = level, settings = store.data.settings) {
+  return !!store.data.progress[progressKey(settings)]?.completed.includes(targetLevel);
 }
 function render() {
   if (screen === 'results' && replayRules === 'pro' && !proEligible()) replayRules = 'standard';
@@ -489,6 +489,15 @@ function bind() {
   }
 }
 async function action(name: string) {
+  if (name === 'exit') {
+    audio.suspend();
+    if (isTauri()) await invoke('exit_game');
+    else {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      window.close();
+    }
+    return;
+  }
   if (['home', 'setup', 'hangar', 'scores', 'settings'].includes(name)) {
     await navigate(name);
     return;
@@ -573,7 +582,20 @@ async function action(name: string) {
   if (name === 'retry' || name === 'next') {
     if (!(await leavePending())) return;
     if (!decision) decision = 'skipped';
-    if (game)
+    if (game) {
+      const nextLevel = name === 'next' ? game.config.level + 1 : game.config.level;
+      const route = {
+        ...store.data.settings,
+        ...game.config,
+        campaign: game.campaign,
+        mouseProfile: game.profile,
+      };
+      const rules =
+        name === 'retry'
+          ? replayRules
+          : game.config.rules === 'pro' && !proEligible(nextLevel, route)
+            ? 'standard'
+            : game.config.rules;
       await changeSettings({
         track: game.config.track,
         layout: game.config.layout,
@@ -581,9 +603,10 @@ async function action(name: string) {
         mouseProfile: game.profile,
         primaryOnly: game.config.primaryOnly,
         textLang: game.textLang,
-        rules: name === 'retry' ? replayRules : game.config.rules,
+        rules,
       });
-    if (name === 'next') level++;
+      level = nextLevel;
+    }
     rehearsalPage = 0;
     rehearsed.clear();
     screen = 'briefing';

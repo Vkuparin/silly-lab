@@ -1,4 +1,4 @@
-# Technical decisions — 1.0.0
+# Technical decisions — 1.1.0
 
 The user authorized the feedback implementation and named v1.0.0 the actual first full release. The original v0.1.0 playtest remains historical. Both planned stages ship together, using shared encounter/content systems. No unrelated game code is part of this release.
 
@@ -14,7 +14,7 @@ The user authorized the feedback implementation and named v1.0.0 the actual firs
 | Mouse | Primary-only, two-button and opt-in extended. Middle-click press starts L7, Mouse 4 starts L9 in Mouse/Mixed. Untimed device check precedes launch |
 | Text | Keyboard/Mixed sequel minibosses use shorter words, commanders whole localized words, final commander a seeded sentence. Committed text has exclusive ownership; NFC/case normalization, prefix correction, no paste-to-win. Words are drawn beneath the ship; each accepted letter emits a cannon event |
 | Text fairness | Word deadlines reflect character count. Letter shots are presentation events; word completion scores a pip once. FI text requires FI/SV layout; Mouse encounters remain pointer-only |
-| Comparison | Frozen per-attempt campaign/track/preset/layout/profile/content identity; tuple 2.2.2. Locale, word rotation and final sentence variants separate unequal comparisons; historical boards survive |
+| Comparison | Frozen per-attempt campaign/track/preset/layout/profile/content identity; tuple 3.2.3. Locale, word rotation and final sentence variants separate unequal comparisons; historical boards survive |
 | Presets | Standard, Relaxed and stronger Pro. Practice folds into Relaxed; briefing rehearsal stays. Pro uses shorter travel/intervals and stronger commanders; defense L11/L12 keeps release-separated Shift sequences |
 | Cosmetics | Purchases cost ceil(old price × 1.5); existing ownership survives. Twelve earned sequel appearances. Equipment never changes score, damage or timing |
 | Presentation | Twenty-four procedural scenes, 24 level and 24 commander themes, damage states, cannon aim, scrap cues and endings. Bounded effects; reduced motion overrides moving effects |
@@ -25,3 +25,5 @@ The user authorized the feedback implementation and named v1.0.0 the actual firs
 Tauri's [absolute webview data-directory API](https://docs.rs/tauri/2.12.0/tauri/webview/struct.WebviewWindowBuilder.html#method.data_directory) and [runtime distribution guidance](https://v2.tauri.app/distribute/windows-installer/) inform packaging. Redirecting only save paths would leave browser caches elsewhere, so both are explicitly redirected.
 
 School-laptop performance, human pacing/fun and real accessibility/layout compatibility remain external validation work. Automated perfect play is not a human session or evidence of educational efficacy. See [verification](verification.md) for observed results and limits.
+
+For v1.1.0, see [the accepted update](update-v1.1.0.md): wave duration ×1.5, encounter inputs ceil(×1.5), route-specific next-level Pro fallback, results progression emphasis and native menu Exit. Schema 2/storage paths are retained.
