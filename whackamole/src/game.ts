@@ -6,6 +6,7 @@
 
 export type Phase = "idle" | "playing" | "over";
 export type MoleKind = "normal" | "golden" | "bomb";
+export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export interface GameState {
   phase: Phase;
@@ -30,14 +31,67 @@ export type WhackEvent = "hit" | "golden" | "bomb" | "miss" | "ignored";
 export const ROUND_SECONDS = 30;
 export const HOLES = 9;
 
-// Discrete pop intervals: the higher the score, the faster the mole hops.
+// ---------------------------------------------------------------------------
+// Difficulty levels (design §14.2) — v0.4.0
+// ---------------------------------------------------------------------------
+
+/**
+ * Pop-interval factor per difficulty level. Level 3 (×1) is the original
+ * speed — "current" per Ville's spec; 1 and 2 are slower, 4 and 5 faster.
+ */
+export const DIFFICULTY_FACTOR: Record<Difficulty, number> = {
+  1: 1.5,
+  2: 1.25,
+  3: 1.0,
+  4: 0.75,
+  5: 0.6,
+};
+
+export function clampDifficulty(value: number): Difficulty {
+  if (!Number.isFinite(value)) return 3;
+  const clamped = Math.min(5, Math.max(1, Math.round(value)));
+  return clamped as Difficulty;
+}
+
+// Discrete pop intervals by score at level 3 (design §2.4, unchanged).
 const POP_INTERVALS_MS = [1200, 1000, 850, 700];
 
-export function popIntervalMs(score: number): number {
-  if (score >= 20) return POP_INTERVALS_MS[3];
-  if (score >= 12) return POP_INTERVALS_MS[2];
-  if (score >= 5) return POP_INTERVALS_MS[1];
-  return POP_INTERVALS_MS[0];
+/**
+ * Pop interval for a score at the given difficulty (default 3, the original
+ * speed). Level factor applied to the score-based base, rounded to the
+ * nearest 10 ms (design §14.2 table). One-argument calls keep the exact
+ * §2.4 values, so existing behavior and tests are untouched at level 3.
+ */
+export function popIntervalMs(score: number, difficulty: Difficulty = 3): number {
+  let base: number;
+  if (score >= 20) base = POP_INTERVALS_MS[3];
+  else if (score >= 12) base = POP_INTERVALS_MS[2];
+  else if (score >= 5) base = POP_INTERVALS_MS[1];
+  else base = POP_INTERVALS_MS[0];
+  return Math.round((base * DIFFICULTY_FACTOR[difficulty]) / 10) * 10;
+}
+
+export const DIFFICULTY_KEY = "whackamole.difficulty.v1";
+
+/** Load the persisted difficulty; default 3, invalid values fall back to 3. */
+export function loadDifficulty(): Difficulty {
+  try {
+    const raw = globalThis.localStorage?.getItem(DIFFICULTY_KEY);
+    if (raw === null) return 3;
+    const value = Number(raw);
+    if (Number.isInteger(value) && value >= 1 && value <= 5) return value as Difficulty;
+    return 3;
+  } catch {
+    return 3;
+  }
+}
+
+export function saveDifficulty(difficulty: Difficulty): void {
+  try {
+    globalThis.localStorage?.setItem(DIFFICULTY_KEY, String(difficulty));
+  } catch {
+    // Persisting the preference is best-effort.
+  }
 }
 
 export function createInitialState(): GameState {

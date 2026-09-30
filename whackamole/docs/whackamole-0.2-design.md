@@ -1,8 +1,12 @@
 # Whack-a-Mole v0.2.0 — Design Document
 
-Status: approved spec for implementation
-Scope owner: Kynsi (design) / OpenCode (implementation)
+Status: approved spec for implementation; v0.4.0 scope added as §14 (2026-09-30)
+Scope owner: Kynsi (design + implementation)
 Baseline: v0.1.0 (commit `179349b`) — one mole, nine holes, 30 s, speed ramp.
+
+Shipped history: v0.1.0 (PoC), v0.2.0 (+ high scores, golden/bomb, EN/FI — §13),
+v0.3.0 (portable mode, window fit, FI string fixes), v0.4.0 (difficulty levels,
+retro arcade music — §14).
 
 ## 1. Goals
 
@@ -309,3 +313,126 @@ bad translations are a defect). Example tone: `High scores` → `Ennätystulokse
 - Toggle renders as two small buttons `FI` / `EN` (active one highlighted) in the
   HUD — compact, keyboard-friendly, works on all screens.
 - The high-score board shows stored names as-is (user data is not translated).
+
+## 14. Addendum (added 2026-09-30, v0.4.0 scope by Ville): difficulty levels + retro arcade music
+
+**Scope note:** ships in the v0.4.0 release. No new dependencies, no Rust
+changes beyond the version bump. §14.2 **extends** the §2.4 speed ramp:
+the §2.4 table is level 3 ("current speed"); levels 1–2 are slower, levels
+4–5 faster. Level 3 must produce exactly the v0.3.0 behavior.
+
+### 14.1 Difficulty requirements (normative)
+
+1. **Five difficulty levels**, 1 (slowest) through 5 (fastest).
+2. **Level 3 is the current speed** — the §2.4 ramp (`1200/1000/850/700` ms)
+   is level 3, unchanged.
+3. **Level 1 is a lot slower** than level 3, **level 2 slower** than level 3;
+   symmetrically **level 4 faster**, **level 5 a lot faster**.
+4. **Changeable on the fly:** the selector is visible in the HUD on all
+   screens (idle, playing, game over) and changing it mid-round takes effect
+   **from the next mole hop** — no round restart, no reset of score/timer/
+   streak, no reload. Same on-the-fly semantics as the language toggle (§13).
+5. **Persistence:** selection stored in `localStorage` key
+   `whackamole.difficulty.v1` (value `"1"`…`"5"`); default **3**; invalid
+   values fall back to **3**. Loaded on startup.
+6. **Localization:** all new strings in the `en`/`fi` tables (§14.6); the
+   parity test (§13.4) must keep passing.
+
+### 14.2 Speed table (normative, extends §2.4)
+
+Pop interval = §2.4 base interval × level factor, rounded to the nearest
+10 ms:
+
+| Level | 1 | 2 | 3 (current) | 4 | 5 |
+| :---- | :-- | :-- | :-- | :-- | :-- |
+| Factor | ×1.50 | ×1.25 | ×1.00 | ×0.75 | ×0.60 |
+| Base (score 0) | 1800 ms | 1500 ms | 1200 ms | 900 ms | 720 ms |
+| score ≥ 5 | 1500 ms | 1250 ms | 1000 ms | 750 ms | 600 ms |
+| score ≥ 12 | 1280 ms | 1060 ms | 850 ms | 640 ms | 510 ms |
+| score ≥ 20 | 1050 ms | 880 ms | 700 ms | 530 ms | 420 ms |
+
+API (in `src/game.ts`, pure and unit-testable):
+
+```ts
+type Difficulty = 1 | 2 | 3 | 4 | 5;
+DIFFICULTY_FACTOR: Record<Difficulty, number>  // {1:1.5, 2:1.25, 3:1, 4:0.75, 5:0.6}
+clampDifficulty(value: number): Difficulty      // out-of-range/NaN → nearest valid
+loadDifficulty(): Difficulty                    // default 3, invalid → 3
+saveDifficulty(d: Difficulty): void             // try/catch, best-effort
+popIntervalMs(score: number, difficulty?: Difficulty): number  // default 3 (back-compat)
+```
+
+`popIntervalMs(score)` with one argument must return the exact §2.4 values
+(existing tests must keep passing untouched).
+
+### 14.3 Difficulty UI (normative)
+
+- Segmented control `1 2 3 4 5` in the HUD (all screens), active level
+  highlighted, mirroring the FI/EN toggle styling.
+- Group `aria-label` = `t(lang, "difficulty")`; each button
+  `aria-pressed` with label `t(lang, "level").replace("{n}", …)`.
+- Selection is **not** part of round state: a change mid-round only alters the
+  interval the hop chain schedules for the *next* hop (the hop effect already
+  reads live values per hop — same mechanism as the score ramp, §2.4).
+
+### 14.4 Retro arcade music (normative behavior, best-effort implementation)
+
+1. **Synthesized chiptune loop** with WebAudio — **no audio assets, no
+   downloads, no dependencies** (same discipline as §5 SFX; composed inline,
+   not fetched).
+2. **Loop:** 4 bars of 16th notes at 150 BPM (64 steps × 0.10 s), key A minor,
+   progression Am–F–C–G. Square-wave lead (pluck, ~0.09 s notes) over a
+   triangle-wave bass (eighth-note roots: A2, F2, C3, G2). Export the pattern
+   data (lengths, note ranges) for sanity tests.
+3. **Scheduler:** lookahead pattern — a 50 ms `setInterval` schedules notes
+   ~0.25 s ahead on the `AudioContext` clock; stop clears the timer (already
+   scheduled notes ring out ≤ 0.3 s, acceptable).
+4. **Toggle:** separate 🎵/🎵-off button in the HUD, independent of the SFX
+   mute. **Default: off.** Persisted in `localStorage` key
+   `whackamole.music.v1` (`"1"`/`"0"`).
+5. **Play state:** when enabled, the loop runs continuously — idle, playing,
+   and game over (arcade attract-mode feel). Starting requires a user gesture
+   (the toggle click); `AudioContext` created/resumed lazily via the shared
+   `getContext()` from `sound.ts`.
+6. **Housekeeping:** pause when the window is hidden (`visibilitychange`),
+   resume when visible if still enabled. Every call wrapped in `try/catch`:
+   audio failure is a silent no-op and never breaks the game (§5 rule).
+
+### 14.5 Architecture
+
+- `src/game.ts`: + `Difficulty` type, `DIFFICULTY_FACTOR`, `clampDifficulty`,
+  `loadDifficulty`, `saveDifficulty`; `popIntervalMs` gains the optional
+  difficulty parameter (default 3).
+- NEW `src/music.ts`: pattern data (pure), scheduler, toggle + persistence.
+  All DOM/Audio calls guarded; Node-safe (no `document`/`AudioContext`
+  access at module top level outside guards).
+- `src/sound.ts`: export `getContext()` for reuse by `music.ts` (single
+  AudioContext per app).
+- `src/i18n.ts`: + keys `difficulty`, `level`, `musicOn`, `musicOff` (EN + FI,
+  parity-checked).
+- `src/App.tsx`: difficulty state + ref (read per hop), selector UI, music
+  toggle wiring.
+- Tests: `test/game.test.mjs` + difficulty table/clamp/persistence cases;
+  NEW `test/music.test.mjs` (pattern length, note range, step duration);
+  `test/i18n.test.mjs` parity covers the new keys automatically.
+
+### 14.6 String keys (normative, EN + FI)
+
+- `difficulty` — "Difficulty" / "Vaikeustaso" (selector group label).
+- `level` — "Level {n}" / "Taso {n}" (per-button accessible label).
+- `musicOn` / `musicOff` — key names follow `soundOn`/`soundOff` (name =
+  resulting state): `musicOn` "Music on" / "Musiikki päälle" (aria label when
+  music is off, i.e. the click turns it on); `musicOff` "Music off" /
+  "Musiikki pois" (aria label when music is on).
+
+### 14.7 Acceptance criteria (v0.4.0)
+
+1. §14.1–§14.3 implemented exactly: 5 levels, level 3 ≡ v0.3.0 speed,
+   on-the-fly change applies from the next hop without resetting the round.
+2. §14.4 implemented: music toggle works, default off, preference persists,
+   no audio asset or dependency added.
+3. `node --test` passes (including new difficulty + music cases and the i18n
+   parity test); `npm run build` zero errors.
+4. Version bumped 0.3.0 → 0.4.0 in all three places; `npm run tauri build`
+   succeeds; all three artifacts exist and are staged in `release/v0.4.0/`.
+5. No new dependencies; Rust side unchanged except the Cargo version bump.

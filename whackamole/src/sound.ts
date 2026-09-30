@@ -29,7 +29,7 @@ export function setMuted(value: boolean): void {
 }
 
 /** Lazily create the AudioContext on first user gesture; resume if suspended. */
-function getContext(): AudioContext | null {
+export function getContext(): AudioContext | null {
   try {
     if (audioCtx === null) {
       const Ctor =

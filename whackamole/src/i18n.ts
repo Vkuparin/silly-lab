@@ -32,6 +32,10 @@ export const en = {
   bombHint: "Bomb: −2 points",
   langLabel: "Language",
   hole: "Hole {n}",
+  difficulty: "Difficulty",
+  level: "Level {n}",
+  musicOn: "Music on",
+  musicOff: "Music off",
 };
 
 export type StrKey = keyof typeof en;
@@ -64,6 +68,10 @@ export const fi: Record<StrKey, string> = {
   bombHint: "Pommi: −2 pistettä",
   langLabel: "Kieli",
   hole: "Reikä {n}",
+  difficulty: "Vaikeustaso",
+  level: "Taso {n}",
+  musicOn: "Musiikki päälle",
+  musicOff: "Musiikki pois",
 };
 
 export const LANG_KEY = "whackamole.lang.v1";

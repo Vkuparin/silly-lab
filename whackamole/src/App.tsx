@@ -4,18 +4,22 @@ import {
   applyWhack,
   createInitialState,
   createStorageAdapter,
+  loadDifficulty,
   popIntervalMs,
   sanitizeName,
+  saveDifficulty,
   saveScoreToBoard,
   spawnMole,
   startRound,
   tick,
+  type Difficulty,
   type GameState,
   type HighScoreEntry,
   type MoleKind,
   type StorageAdapter,
   type WhackEvent,
 } from "./game";
+import { ensureMusicRunning, isMusicEnabled, setMusicEnabled } from "./music";
 import { isMuted, playBomb, playGolden, playHit, setMuted } from "./sound";
 import { loadLang, saveLang, t, type Lang } from "./i18n";
 
@@ -97,6 +101,11 @@ export default function App() {
   const [lang, setLangState] = useState<Lang>(loadLang);
   const [board, setBoard] = useState<HighScoreEntry[]>(() => storage().load());
   const [muted, setMutedState] = useState(isMuted);
+  const [musicOn, setMusicOn] = useState(isMusicEnabled);
+  // Difficulty: state is the render mirror; the ref is what the hop chain
+  // reads, so a mid-round change applies to the very next hop (design §14.3).
+  const [difficulty, setDifficultyState] = useState<Difficulty>(loadDifficulty);
+  const difficultyRef = useRef<Difficulty>(difficulty);
   const [nameInput, setNameInput] = useState("");
   const [namePrefilled, setNamePrefilled] = useState(false);
   const [savedEntry, setSavedEntry] = useState<HighScoreEntry | null>(null);
@@ -145,7 +154,7 @@ export default function App() {
       const forced = forcedKindRef.current;
       forcedKindRef.current = null;
       commit(spawnMole(s, next, forced !== null ? { forceKind: forced } : undefined));
-      id = window.setTimeout(hop, popIntervalMs(gameRef.current.score));
+      id = window.setTimeout(hop, popIntervalMs(gameRef.current.score, difficultyRef.current));
     };
     hop(); // hop() schedules the next tick itself — one chain, not two
     return () => clearTimeout(id);
@@ -165,6 +174,7 @@ export default function App() {
     setSkipped(false);
     setNamePrefilled(false);
     setNameInput("");
+    ensureMusicRunning(); // user gesture: (re)start the loop if enabled (design §14.4.5)
     commit(startRound());
   }
 
@@ -178,6 +188,20 @@ export default function App() {
     const next = !muted;
     setMuted(next);
     setMutedState(next);
+  }
+
+  function toggleMusic(): void {
+    const next = !musicOn;
+    setMusicEnabled(next);
+    setMusicOn(next);
+  }
+
+  // On-the-fly difficulty change (design §14.1.4): only the interval the hop
+  // chain schedules for the NEXT hop changes — score/timer/streak untouched.
+  function setDifficulty(next: Difficulty): void {
+    difficultyRef.current = next;
+    setDifficultyState(next);
+    saveDifficulty(next);
   }
 
   // On-the-fly language switch (design §13.1.4): every string is rendered
@@ -245,6 +269,16 @@ export default function App() {
         >
           {muted ? "🔇" : "🔊"}
         </button>
+        <button
+          type="button"
+          onClick={toggleMusic}
+          aria-label={musicOn ? t(lang, "musicOff") : t(lang, "musicOn")}
+          className={`rounded-full bg-white/60 px-2.5 py-1 text-lg shadow-sm transition hover:bg-white/90 active:scale-95 ${
+            musicOn ? "opacity-100" : "opacity-40"
+          }`}
+        >
+          🎵
+        </button>
         <div
           className="flex overflow-hidden rounded-full border-2 border-lime-900/20 bg-white/60 text-sm font-extrabold shadow-sm"
           role="group"
@@ -263,6 +297,28 @@ export default function App() {
               }`}
             >
               {l}
+            </button>
+          ))}
+        </div>
+        <div
+          className="flex overflow-hidden rounded-full border-2 border-lime-900/20 bg-white/60 text-sm font-extrabold shadow-sm"
+          role="group"
+          aria-label={t(lang, "difficulty")}
+        >
+          {([1, 2, 3, 4, 5] as const).map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDifficulty(d)}
+              aria-pressed={difficulty === d}
+              aria-label={t(lang, "level").replace("{n}", String(d))}
+              className={`px-2.5 py-1 transition ${
+                difficulty === d
+                  ? "bg-lime-900 text-white"
+                  : "text-lime-900 hover:bg-white/80"
+              }`}
+            >
+              {d}
             </button>
           ))}
         </div>

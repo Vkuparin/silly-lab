@@ -8,13 +8,17 @@ import assert from "node:assert/strict";
 import {
   MAX_ENTRIES,
   applyWhack,
+  clampDifficulty,
   createInitialState,
   createMemoryStorage,
   createStorageAdapter,
+  DIFFICULTY_KEY,
   drawKind,
+  loadDifficulty,
   loadScores,
   popIntervalMs,
   sanitizeName,
+  saveDifficulty,
   saveScoreToBoard,
   sortEntries,
   spawnMole,
@@ -239,6 +243,104 @@ test("pop interval ramps with score: 1200/1000/850/700", () => {
   assert.equal(popIntervalMs(19), 850);
   assert.equal(popIntervalMs(20), 700);
   assert.equal(popIntervalMs(999), 700);
+});
+
+// ---------------------------------------------------------------------------
+// Difficulty levels (design §14.2)
+// ---------------------------------------------------------------------------
+
+test("difficulty table: factors applied to the score ramp, rounded to 10 ms", () => {
+  const table = {
+    1: [1800, 1500, 1280, 1050],
+    2: [1500, 1250, 1060, 880],
+    3: [1200, 1000, 850, 700],
+    4: [900, 750, 640, 530],
+    5: [720, 600, 510, 420],
+  };
+  for (const [level, row] of Object.entries(table)) {
+    const d = Number(level);
+    assert.equal(popIntervalMs(0, d), row[0]);
+    assert.equal(popIntervalMs(5, d), row[1]);
+    assert.equal(popIntervalMs(12, d), row[2]);
+    assert.equal(popIntervalMs(20, d), row[3]);
+  }
+});
+
+test("default difficulty is 3, identical to the original (level 3) ramp", () => {
+  for (const score of [0, 4, 5, 11, 12, 19, 20, 999]) {
+    assert.equal(popIntervalMs(score, 3), popIntervalMs(score));
+  }
+});
+
+test("levels are ordered: 1 slowest ... 5 fastest at every score tier", () => {
+  for (const score of [0, 6, 13, 25]) {
+    assert.ok(popIntervalMs(score, 1) > popIntervalMs(score, 2));
+    assert.ok(popIntervalMs(score, 2) > popIntervalMs(score, 3));
+    assert.ok(popIntervalMs(score, 3) > popIntervalMs(score, 4));
+    assert.ok(popIntervalMs(score, 4) > popIntervalMs(score, 5));
+  }
+});
+
+test("clampDifficulty: out-of-range, fractional and NaN values land on a valid level", () => {
+  assert.equal(clampDifficulty(0), 1);
+  assert.equal(clampDifficulty(-7), 1);
+  assert.equal(clampDifficulty(1.4), 1);
+  assert.equal(clampDifficulty(1.5), 2);
+  assert.equal(clampDifficulty(3), 3);
+  assert.equal(clampDifficulty(2.5), 3);
+  assert.equal(clampDifficulty(4.2), 4);
+  assert.equal(clampDifficulty(5), 5);
+  assert.equal(clampDifficulty(6), 5);
+  assert.equal(clampDifficulty(Number.NaN), 3);
+});
+
+test("loadDifficulty: no stored value falls back to the default of 3", () => {
+  // Fresh test process: nothing under the key yet (or a leftover invalid
+  // value — both must degrade to 3, see next test).
+  assert.equal(loadDifficulty(), 3);
+});
+
+test("difficulty persists round-trip and invalid values fall back to 3", () => {
+  // Node has no localStorage; polyfill it with the in-memory store so the
+  // real loadDifficulty/saveDifficulty path is exercised, then restore.
+  const store = createMemoryStorage();
+  const hadGlobal = "localStorage" in globalThis;
+  const previous = hadGlobal ? globalThis.localStorage : undefined;
+  Object.defineProperty(globalThis, "localStorage", {
+    value: store,
+    configurable: true,
+    writable: true,
+  });
+  try {
+    // Fresh store: nothing under the key yet, must fall back to 3.
+    assert.equal(loadDifficulty(), 3);
+
+    saveDifficulty(5);
+    assert.equal(store.getItem(DIFFICULTY_KEY), "5");
+    assert.equal(loadDifficulty(), 5);
+
+    saveDifficulty(1);
+    assert.equal(loadDifficulty(), 1);
+
+    store.setItem(DIFFICULTY_KEY, "9");
+    assert.equal(loadDifficulty(), 3);
+    store.setItem(DIFFICULTY_KEY, "banana");
+    assert.equal(loadDifficulty(), 3);
+    store.setItem(DIFFICULTY_KEY, "2.5");
+    assert.equal(loadDifficulty(), 3); // not an integer
+    store.setItem(DIFFICULTY_KEY, "");
+    assert.equal(loadDifficulty(), 3);
+  } finally {
+    if (hadGlobal) {
+      Object.defineProperty(globalThis, "localStorage", {
+        value: previous,
+        configurable: true,
+        writable: true,
+      });
+    } else {
+      delete globalThis.localStorage;
+    }
+  }
 });
 
 // ---------------------------------------------------------------------------
